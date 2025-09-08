@@ -1,0 +1,164 @@
+/* The Unfiltered Voice Design System - Dark Only, Purple-Pink + Blue
+All colors MUST be HSL. Literary, raw, unfiltered aesthetic.
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Inter:wght@100..900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Dark theme base colors */
+    --background: 220 15% 6%;  /* #0B0D0E - Deep dark */
+    --foreground: 0 0% 93%;    /* #ECECEC - Soft white */
+
+    /* Surface colors */
+    --card: 220 12% 8%;        /* #121417 - Subtle surface */
+    --card-foreground: 0 0% 93%;
+
+    --popover: 220 12% 8%;
+    --popover-foreground: 0 0% 93%;
+
+    /* Brand colors - Purple-Pink-Blue */
+    --primary: 264 85% 75%;    /* #A78BFA - Amethyst purple */
+    --primary-foreground: 220 15% 6%;
+
+    --accent: 323 87% 70%;     /* #F472B6 - Vibrant pink */
+    --accent-foreground: 220 15% 6%;
+
+    --secondary: 213 93% 68%;  /* #60A5FA - Electric blue */
+    --secondary-foreground: 220 15% 6%;
+
+    /* Subtle UI colors */
+    --muted: 220 12% 12%;      /* Muted backgrounds */
+    --muted-foreground: 0 0% 70%;
+
+    --border: 220 12% 15%;
+    --input: 220 12% 15%;
+    --ring: 264 85% 75%;
+
+    /* Interactive states */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --radius: 0.75rem;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--card)));
+    --gradient-ink: linear-gradient(45deg, hsl(var(--primary) / 0.1), hsl(var(--accent) / 0.1));
+
+    /* Shadows with brand colors */
+    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.3);
+    --shadow-subtle: 0 4px 20px hsl(220 20% 4% / 0.5);
+    --shadow-lift: 0 8px 30px hsl(220 20% 4% / 0.8);
+
+    /* Typography scale */
+    --font-heading: 'Fraunces', serif;
+    --font-body: 'Inter', sans-serif;
+    
+    /* Animation easing */
+    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    /* Transitions */
+    --transition-fast: 0.15s var(--ease-smooth);
+    --transition-smooth: 0.25s var(--ease-smooth);
+    --transition-slow: 0.4s var(--ease-smooth);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Remove focus outline for mouse users */
+  .js-focus-visible :focus:not(.focus-visible) {
+    outline: none;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-background;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary/30 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary/50;
+  }
+}
+
+@layer components {
+  /* Prose styling for content */
+  .prose {
+    @apply max-w-none text-foreground;
+  }
+
+  .prose h1, .prose h2, .prose h3, .prose h4 {
+    @apply font-heading text-foreground;
+  }
+
+  .prose p {
+    @apply text-foreground/90;
+  }
+
+  .prose strong {
+    @apply text-foreground font-semibold;
+  }
+
+  /* Button hover fix - ensure text stays visible */
+  .btn-meet-niyati {
+    @apply relative overflow-hidden;
+  }
+
+  .btn-meet-niyati::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-primary opacity-0 transition-opacity duration-300;
+    z-index: -1;
+  }
+
+  .btn-meet-niyati:hover::before {
+    @apply opacity-100;
+  }
+
+  .btn-meet-niyati:hover {
+    @apply text-primary-foreground;
+  }
+
+  /* Utility classes */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animation-delay-400 {
+    animation-delay: 400ms;
+  }
+
+  .animation-delay-600 {
+    animation-delay: 600ms;
+  }
+}
