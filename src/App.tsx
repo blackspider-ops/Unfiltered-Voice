@@ -21,14 +21,13 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <HelmetProvider>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <SettingsProvider>
-          <TooltipProvider>
-            <div className="min-h-screen bg-background text-foreground">
-              <Toaster />
-              <Sonner />
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <SettingsProvider>
+        <TooltipProvider>
+          <div className="min-h-screen bg-background text-foreground">
+            <Toaster />
+            <Sonner />
             <BrowserRouter>
               <Header />
               <main>
@@ -55,7 +54,6 @@ const App = () => (
       </SettingsProvider>
     </AuthProvider>
   </QueryClientProvider>
-  </HelmetProvider>
 );
 
 export default App;

@@ -1,9 +1,10 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/enhanced-button';
 import { Link } from 'react-router-dom';
-import { Brain, Newspaper, PenTool, BookOpen, ArrowRight, FileText } from 'lucide-react';
+import { Brain, Newspaper, PenTool, BookOpen, ArrowRight, FileText, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 const categoryTemplates = [
   {
@@ -52,6 +53,7 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [randomLoading, setRandomLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchCategoryData();
@@ -86,6 +88,31 @@ export default function CategoriesPage() {
       setCategories(categoryTemplates.map(cat => ({ ...cat, posts: 0 })));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openRandomPost = async () => {
+    setRandomLoading(true);
+    try {
+      const { data: posts, error } = await supabase
+        .from('posts')
+        .select('category, slug')
+        .eq('is_published', true);
+
+      if (error) throw error;
+
+      if (posts && posts.length > 0) {
+        const randomPost = posts[Math.floor(Math.random() * posts.length)];
+        navigate(`/${randomPost.category}/${randomPost.slug}`);
+      } else {
+        // Fallback to home if no posts
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Error fetching random post:', error);
+      navigate('/');
+    } finally {
+      setRandomLoading(false);
     }
   };
   return (
@@ -199,12 +226,33 @@ export default function CategoriesPage() {
             <p className="text-muted-foreground mb-6">
               Every journey begins with a single step. Pick the category that speaks to your soul today.
             </p>
-            <Button variant="hero" size="lg" asChild>
-              <Link to="/" className="flex items-center gap-2">
-                Back to Home
-                <ArrowRight className="h-5 w-5" />
-              </Link>
-            </Button>
+            <div className="flex justify-center gap-4 flex-wrap">
+              <Button 
+                variant="hero" 
+                size="lg" 
+                onClick={openRandomPost}
+                disabled={randomLoading}
+                className="flex items-center gap-2"
+              >
+                {randomLoading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Finding a post...
+                  </>
+                ) : (
+                  <>
+                    Surprise Me!
+                    <ArrowRight className="h-5 w-5" />
+                  </>
+                )}
+              </Button>
+              <Button variant="outline" size="lg" asChild>
+                <Link to="/" className="flex items-center gap-2">
+                  Back to Home
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </div>

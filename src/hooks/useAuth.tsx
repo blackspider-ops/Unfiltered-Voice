@@ -23,62 +23,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
-    const checkUserRoles = async (userId: string) => {
-      try {
-        const { data } = await supabase
+    // Get initial session first
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      // Check roles for initial session
+      if (session?.user) {
+        supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', userId)
-          .in('role', ['admin', 'owner']);
-        
-        const roles = data || [];
-        const hasOwner = roles.some(r => r.role === 'owner');
-        const hasAdmin = roles.some(r => r.role === 'admin');
-        
-        setIsOwner(hasOwner);
-        setIsAdmin(hasAdmin || hasOwner); // Owners also have admin access
-      } catch (error) {
-        console.error('Error checking user roles:', error);
+          .eq('user_id', session.user.id)
+          .in('role', ['admin', 'owner'])
+          .then(({ data }) => {
+            const roles = data || [];
+            const hasOwner = roles.some(r => r.role === 'owner');
+            const hasAdmin = roles.some(r => r.role === 'admin');
+            
+            setIsOwner(hasOwner);
+            setIsAdmin(hasAdmin || hasOwner);
+            setLoading(false);
+          })
+          .catch(() => {
+            setIsAdmin(false);
+            setIsOwner(false);
+            setLoading(false);
+          });
+      } else {
         setIsAdmin(false);
         setIsOwner(false);
+        setLoading(false);
       }
-    };
+    });
 
-    // Set up auth state listener
+    // Set up auth state listener for future changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Check if user is admin or owner
         if (session?.user) {
-          await checkUserRoles(session.user.id);
+          supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .in('role', ['admin', 'owner'])
+            .then(({ data }) => {
+              const roles = data || [];
+              const hasOwner = roles.some(r => r.role === 'owner');
+              const hasAdmin = roles.some(r => r.role === 'admin');
+              
+              setIsOwner(hasOwner);
+              setIsAdmin(hasAdmin || hasOwner);
+            })
+            .catch(() => {
+              setIsAdmin(false);
+              setIsOwner(false);
+            });
         } else {
           setIsAdmin(false);
           setIsOwner(false);
         }
-        
-        setLoading(false);
       }
     );
-
-    // Get initial session and check roles
-    const initializeAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        await checkUserRoles(session.user.id);
-      } else {
-        setIsAdmin(false);
-        setIsOwner(false);
-      }
-      
-      setLoading(false);
-    };
-
-    initializeAuth();
 
     return () => subscription.unsubscribe();
   }, []);

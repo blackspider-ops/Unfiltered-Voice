@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useLatestPost } from '@/hooks/useLatestPost';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/enhanced-button';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Mail, Instagram, Twitter, Linkedin, Heart, Coffee, BookOpen, Pen, Loader2 } from 'lucide-react';
-import { Helmet } from 'react-helmet-async';
+// import { Helmet } from 'react-helmet-async';
 
 interface AboutContent {
     id: string;
@@ -60,6 +61,7 @@ const defaultContent: AboutContent = {
 export default function MeetNiyatiPage() {
     const [content, setContent] = useState<AboutContent>(defaultContent);
     const [loading, setLoading] = useState(true);
+    const { latestPost, getLatestPostUrl } = useLatestPost();
 
     useEffect(() => {
         fetchAboutContent();
@@ -130,16 +132,7 @@ export default function MeetNiyatiPage() {
     }
 
     return (
-        <>
-            <Helmet>
-                <title>{content.title} - The Unfiltered Voice</title>
-                <meta name="description" content={content.subtitle} />
-                <meta property="og:title" content={`${content.title} - The Unfiltered Voice`} />
-                <meta property="og:description" content={content.subtitle} />
-                <meta property="og:image" content={content.profile_image_url} />
-            </Helmet>
-
-            <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background">
                 {/* Hero Section */}
                 <div className="relative overflow-hidden">
                     <div
@@ -282,8 +275,8 @@ export default function MeetNiyatiPage() {
                                     </p>
                                     <div className="flex justify-center gap-4 flex-wrap">
                                         <Button variant="hero" size="lg" asChild>
-                                            <Link to="/" className="flex items-center gap-2">
-                                                Read Latest Posts
+                                            <Link to={getLatestPostUrl()} className="flex items-center gap-2">
+                                                {latestPost ? `Read "${latestPost.title}"` : 'Read Latest Posts'}
                                                 <ArrowRight className="h-5 w-5" />
                                             </Link>
                                         </Button>
@@ -299,6 +292,5 @@ export default function MeetNiyatiPage() {
                     </div>
                 </div>
             </div>
-        </>
     );
 }

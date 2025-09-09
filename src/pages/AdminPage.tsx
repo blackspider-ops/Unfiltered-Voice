@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
-import { Trash2, Eye, EyeOff, FileText, MessageCircle, Users, BarChart3, Settings as SettingsIcon, Loader2, Edit, Crown, Mail as MailIcon, Tag, User } from 'lucide-react';
+import { Trash2, Eye, EyeOff, FileText, MessageCircle, Users, BarChart3, Settings as SettingsIcon, Loader2, Edit, Crown, Mail as MailIcon, Tag, User, BookOpen } from 'lucide-react';
 import { BlogEditor } from '@/components/admin/BlogEditor';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { Analytics } from '@/components/admin/Analytics';
@@ -18,6 +18,7 @@ import { Mail } from '@/components/admin/Mail';
 import { Categories } from '@/components/admin/Categories';
 import { Settings } from '@/components/admin/Settings';
 import { AboutEditor } from '@/components/admin/AboutEditor';
+import { OwnerCheatsheet } from '@/components/admin/OwnerCheatsheet';
 
 interface Post {
   id: string;
@@ -246,51 +247,153 @@ export default function AdminPage() {
           </p>
         </div>
 
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-primary">{posts.length}</div>
+              <div className="text-sm text-muted-foreground">Total Posts</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-secondary">{posts.filter(p => p.is_published).length}</div>
+              <div className="text-sm text-muted-foreground">Published</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-accent">{comments.length}</div>
+              <div className="text-sm text-muted-foreground">Comments</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-primary">{comments.filter(c => !c.is_approved).length}</div>
+              <div className="text-sm text-muted-foreground">Pending</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <Button
+            variant={activeTab === 'editor' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('editor')}
+            className="h-20 flex-col gap-2"
+          >
+            <FileText className="h-6 w-6" />
+            <span className="text-sm">New Post</span>
+          </Button>
+          
+          <Button
+            variant={activeTab === 'analytics' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('analytics')}
+            className="h-20 flex-col gap-2"
+          >
+            <BarChart3 className="h-6 w-6" />
+            <span className="text-sm">Analytics</span>
+          </Button>
+          
+          <Button
+            variant={activeTab === 'posts' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('posts')}
+            className="h-20 flex-col gap-2"
+          >
+            <FileText className="h-6 w-6" />
+            <span className="text-sm">Posts ({posts.length})</span>
+          </Button>
+          
+          <Button
+            variant={activeTab === 'comments' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('comments')}
+            className="h-20 flex-col gap-2"
+          >
+            <MessageCircle className="h-6 w-6" />
+            <span className="text-sm">Comments ({comments.length})</span>
+          </Button>
+        </div>
+
+        {/* Secondary Navigation */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className={`grid w-full ${isOwner ? 'grid-cols-10' : 'grid-cols-9'}`}>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="editor" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Blog Editor
-            </TabsTrigger>
-            <TabsTrigger value="posts" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Posts ({posts.length})
-            </TabsTrigger>
-            <TabsTrigger value="categories" className="flex items-center gap-2">
+          <div className="flex flex-wrap gap-2 mb-6">
+            <Button
+              variant={activeTab === 'categories' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveTab('categories')}
+              className="flex items-center gap-2"
+            >
               <Tag className="h-4 w-4" />
               Categories
-            </TabsTrigger>
-            <TabsTrigger value="about" className="flex items-center gap-2">
+            </Button>
+            
+            <Button
+              variant={activeTab === 'about' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveTab('about')}
+              className="flex items-center gap-2"
+            >
               <User className="h-4 w-4" />
               About Page
-            </TabsTrigger>
-            <TabsTrigger value="comments" className="flex items-center gap-2">
-              <MessageCircle className="h-4 w-4" />
-              Comments ({comments.length})
-            </TabsTrigger>
-            <TabsTrigger value="mail" className="flex items-center gap-2">
+            </Button>
+            
+            <Button
+              variant={activeTab === 'mail' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveTab('mail')}
+              className="flex items-center gap-2"
+            >
               <MailIcon className="h-4 w-4" />
               Mail
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
+            </Button>
+            
+            <Button
+              variant={activeTab === 'users' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveTab('users')}
+              className="flex items-center gap-2"
+            >
               <Users className="h-4 w-4" />
               Users
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
+            </Button>
+            
+            <Button
+              variant={activeTab === 'settings' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveTab('settings')}
+              className="flex items-center gap-2"
+            >
               <SettingsIcon className="h-4 w-4" />
               Settings
-            </TabsTrigger>
+            </Button>
+            
             {isOwner && (
-              <TabsTrigger value="approvals" className="flex items-center gap-2">
-                <Crown className="h-4 w-4" />
-                Approvals
-              </TabsTrigger>
+              <>
+                <Button
+                  variant={activeTab === 'approvals' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveTab('approvals')}
+                  className="flex items-center gap-2"
+                >
+                  <Crown className="h-4 w-4" />
+                  Approvals
+                </Button>
+                
+                <Button
+                  variant={activeTab === 'cheatsheet' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveTab('cheatsheet')}
+                  className="flex items-center gap-2"
+                >
+                  <BookOpen className="h-4 w-4" />
+                  Owner's Guide
+                </Button>
+              </>
             )}
-          </TabsList>
+          </div>
 
           <TabsContent value="analytics">
             <Analytics />
@@ -431,9 +534,15 @@ export default function AdminPage() {
           </TabsContent>
 
           {isOwner && (
-            <TabsContent value="approvals">
-              <OwnerApproval />
-            </TabsContent>
+            <>
+              <TabsContent value="approvals">
+                <OwnerApproval />
+              </TabsContent>
+              
+              <TabsContent value="cheatsheet">
+                <OwnerCheatsheet />
+              </TabsContent>
+            </>
           )}
         </Tabs>
       </div>
