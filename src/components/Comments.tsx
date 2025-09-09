@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { AuthForm } from './AuthForm';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
@@ -14,7 +15,8 @@ interface Comment {
   display_name: string;
   message: string;
   created_at: string;
-  user_id: string;
+  user_id: string | null;
+  is_anonymous: boolean;
 }
 
 interface CommentsProps {
@@ -24,6 +26,7 @@ interface CommentsProps {
 export function Comments({ postId }: CommentsProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [anonymousName, setAnonymousName] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const { user, session } = useAuth();
@@ -72,31 +75,52 @@ export function Comments({ postId }: CommentsProps) {
     }
   };
 
-  const handleSubmitComment = async (e: React.FormEvent) => {
+  const handleSubmitComment = async (e: React.FormEvent, isAnonymous = false) => {
     e.preventDefault();
-    if (!user || !session || !newComment.trim()) return;
+    if (!newComment.trim()) return;
+    if (isAnonymous && !anonymousName.trim()) return;
 
     setSubmitting(true);
     try {
-      // Get user profile for display name
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('display_name')
-        .eq('user_id', user.id)
-        .single();
+      let commentData;
 
-      const { error } = await supabase
-        .from('comments')
-        .insert({
+      if (isAnonymous) {
+        // Anonymous comment
+        commentData = {
+          post_id: postId,
+          user_id: null,
+          display_name: anonymousName.trim(),
+          message: newComment.trim(),
+          is_anonymous: true
+        };
+      } else {
+        // Authenticated comment
+        if (!user || !session) return;
+        
+        // Get user profile for display name
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('user_id', user.id)
+          .single();
+
+        commentData = {
           post_id: postId,
           user_id: user.id,
           display_name: profile?.display_name || 'Anonymous',
-          message: newComment.trim()
-        });
+          message: newComment.trim(),
+          is_anonymous: false
+        };
+      }
+
+      const { error } = await supabase
+        .from('comments')
+        .insert(commentData);
 
       if (error) throw error;
 
       setNewComment('');
+      setAnonymousName('');
       toast.success('Comment posted successfully!');
       fetchComments();
     } catch (error: any) {
@@ -129,10 +153,11 @@ export function Comments({ postId }: CommentsProps) {
       </div>
 
       {/* Comment Form */}
-      {user ? (
-        <Card className="bg-surface border-subtle">
-          <CardContent className="pt-6">
-            <form onSubmit={handleSubmitComment} className="space-y-4">
+      <Card className="bg-surface border-subtle">
+        <CardContent className="pt-6">
+          {user ? (
+            // Authenticated user form
+            <form onSubmit={(e) => handleSubmitComment(e, false)} className="space-y-4">
               <Textarea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
@@ -149,25 +174,51 @@ export function Comments({ postId }: CommentsProps) {
                 </Button>
               </div>
             </form>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card className="bg-surface border-subtle">
-          <CardContent className="pt-6 text-center">
-            <p className="text-muted-foreground mb-4">
-              Sign in to join the conversation
-            </p>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button>Sign In to Comment</Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <AuthForm />
-              </DialogContent>
-            </Dialog>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            // Anonymous user form
+            <div className="space-y-4">
+              <form onSubmit={(e) => handleSubmitComment(e, true)} className="space-y-4">
+                <Input
+                  value={anonymousName}
+                  onChange={(e) => setAnonymousName(e.target.value)}
+                  placeholder="Your name (required for anonymous comments)"
+                  required
+                />
+                <Textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Share your thoughts..."
+                  rows={3}
+                  required
+                />
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-muted-foreground">
+                    Commenting as anonymous user
+                  </div>
+                  <div className="flex gap-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          Sign In Instead
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <AuthForm />
+                      </DialogContent>
+                    </Dialog>
+                    <Button 
+                      type="submit" 
+                      disabled={submitting || !newComment.trim() || !anonymousName.trim()}
+                    >
+                      {submitting ? 'Posting...' : 'Post Anonymous Comment'}
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Comments List */}
       <div className="space-y-4">
@@ -184,9 +235,16 @@ export function Comments({ postId }: CommentsProps) {
             <Card key={comment.id} className="bg-surface border-subtle">
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-center">
-                  <h4 className="font-medium text-foreground">
-                    {comment.display_name}
-                  </h4>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-medium text-foreground">
+                      {comment.display_name}
+                    </h4>
+                    {comment.is_anonymous && (
+                      <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
+                        Anonymous
+                      </span>
+                    )}
+                  </div>
                   <span className="text-sm text-muted-foreground">
                     {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
                   </span>
