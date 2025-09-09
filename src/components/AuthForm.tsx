@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
+import { isPasswordStrong } from '@/utils/passwordValidation';
 
 interface AuthFormProps {
   onClose?: () => void;
@@ -47,6 +49,11 @@ export function AuthForm({ onClose }: AuthFormProps) {
           toast.error(result.error.message);
         }
       } else {
+        if (!isPasswordStrong(password)) {
+          toast.error('Password does not meet security requirements');
+          return;
+        }
+        
         result = await signUp(email, password, displayName);
         if (!result.error) {
           toast.success('Account created! Please check your email to verify.');
@@ -118,13 +125,17 @@ export function AuthForm({ onClose }: AuthFormProps) {
                 required
                 placeholder="••••••••"
               />
+              {/* Show password strength for signup */}
+              {!isLogin && password && (
+                <PasswordStrengthIndicator password={password} />
+              )}
             </div>
           )}
           
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={loading}
+            disabled={loading || (!isLogin && !isResetPassword && !isPasswordStrong(password))}
           >
             {loading ? 'Please wait...' : (
               isResetPassword ? 'Send Reset Email' : (isLogin ? 'Sign In' : 'Create Account')

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Lock } from 'lucide-react';
+import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
+import { isPasswordStrong } from '@/utils/passwordValidation';
 
 export default function ResetPasswordPage() {
     const [password, setPassword] = useState('');
@@ -15,7 +17,6 @@ export default function ResetPasswordPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
 
     useEffect(() => {
         // Handle the auth callback from Supabase
@@ -64,8 +65,8 @@ export default function ResetPasswordPage() {
             return;
         }
 
-        if (password.length < 6) {
-            toast.error('Password must be at least 6 characters long');
+        if (!isPasswordStrong(password)) {
+            toast.error('Password does not meet security requirements');
             return;
         }
 
@@ -162,18 +163,19 @@ export default function ResetPasswordPage() {
                             </div>
                         </div>
 
-                        {password && confirmPassword && password !== confirmPassword && (
-                            <p className="text-sm text-destructive">Passwords do not match</p>
+                        {/* Password Strength Indicator */}
+                        {password && (
+                            <PasswordStrengthIndicator password={password} />
                         )}
 
-                        {password && password.length < 6 && (
-                            <p className="text-sm text-muted-foreground">Password must be at least 6 characters</p>
+                        {password && confirmPassword && password !== confirmPassword && (
+                            <p className="text-sm text-destructive">Passwords do not match</p>
                         )}
 
                         <Button
                             type="submit"
                             className="w-full"
-                            disabled={loading || password !== confirmPassword || password.length < 6}
+                            disabled={loading || password !== confirmPassword || !isPasswordStrong(password)}
                         >
                             {loading ? 'Updating Password...' : 'Update Password'}
                         </Button>
