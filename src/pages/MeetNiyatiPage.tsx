@@ -263,6 +263,48 @@ export default function MeetNiyatiPage() {
                             </CardContent>
                         </Card>
 
+                        {/* Get in Touch Section */}
+                        <Card className="bg-card/70 backdrop-blur border-border/50">
+                            <CardContent className="p-8">
+                                <h2 className="text-2xl font-heading font-bold mb-6 flex items-center gap-2">
+                                    <Mail className="h-6 w-6 text-primary" />
+                                    Get in Touch
+                                </h2>
+                                <div className="text-center mb-8">
+                                    <p className="text-lg text-muted-foreground mb-6">
+                                        Have thoughts to share? Questions to ask? Or just want to say hello? 
+                                        I'd love to hear from you.
+                                    </p>
+                                    <Button variant="hero" size="lg" asChild>
+                                        <Link to="/contact" className="flex items-center gap-2">
+                                            <Mail className="h-5 w-5" />
+                                            Send me a message
+                                        </Link>
+                                    </Button>
+                                </div>
+                                
+                                <div className="grid md:grid-cols-2 gap-6 mt-8">
+                                    <div className="text-center">
+                                        <Heart className="h-8 w-8 text-accent mx-auto mb-3" />
+                                        <h3 className="font-heading font-semibold mb-2">Why reach out?</h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            Whether you want to share your own story, discuss a post that resonated with you, 
+                                            or just connect with someone who gets it – I'm here for genuine conversations.
+                                        </p>
+                                    </div>
+                                    
+                                    <div className="text-center">
+                                        <Coffee className="h-8 w-8 text-secondary mx-auto mb-3" />
+                                        <h3 className="font-heading font-semibold mb-2">Response time</h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            I typically respond within 24-48 hours. Sometimes life gets busy, 
+                                            but I promise to get back to every genuine message.
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
                         {/* Call to Action */}
                         <div className="text-center">
                             <Card className="bg-gradient-primary/10 border-primary/20">

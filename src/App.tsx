@@ -16,6 +16,7 @@ import AdminPage from "./pages/AdminPage";
 import PostPage from "./pages/PostPage";
 import ProfilePage from "./pages/ProfilePage";
 import MeetNiyatiPage from "./pages/MeetNiyatiPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
                   <Route path="/contact" element={<ContactPage />} />
                   <Route path="/meet-niyati" element={<MeetNiyatiPage />} />
                   <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/admin" element={<AdminPage />} />
                   <Route path="/mental-health" element={<CategoryPage />} />

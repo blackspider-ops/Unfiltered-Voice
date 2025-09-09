@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +13,7 @@ interface AuthFormProps {
 
 export function AuthForm({ onClose }: AuthFormProps) {
   const [isLogin, setIsLogin] = useState(true);
+  const [isResetPassword, setIsResetPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -24,22 +26,34 @@ export function AuthForm({ onClose }: AuthFormProps) {
 
     try {
       let result;
-      if (isLogin) {
+      if (isResetPassword) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/auth/reset-password`,
+        });
+        
+        if (!error) {
+          toast.success('Password reset email sent! Check your inbox 📧');
+          setIsResetPassword(false);
+          setIsLogin(true);
+        } else {
+          toast.error(error.message);
+        }
+      } else if (isLogin) {
         result = await signIn(email, password);
         if (!result.error) {
           toast.success('Welcome back!');
           onClose?.();
+        } else {
+          toast.error(result.error.message);
         }
       } else {
         result = await signUp(email, password, displayName);
         if (!result.error) {
           toast.success('Account created! Please check your email to verify.');
           onClose?.();
+        } else {
+          toast.error(result.error.message);
         }
-      }
-
-      if (result.error) {
-        toast.error(result.error.message);
       }
     } catch (error: any) {
       toast.error(error.message || 'An error occurred');
@@ -52,19 +66,22 @@ export function AuthForm({ onClose }: AuthFormProps) {
     <Card className="w-full max-w-md mx-auto bg-surface border-subtle">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-display text-foreground">
-          {isLogin ? 'Welcome Back' : 'Join the Conversation'}
+          {isResetPassword ? 'Reset Password' : (isLogin ? 'Welcome Back' : 'Join the Conversation')}
         </CardTitle>
         <CardDescription className="text-muted-foreground">
-          {isLogin 
-            ? 'Sign in to leave comments and engage with posts'
-            : 'Create an account to join The Unfiltered Voice community'
+          {isResetPassword 
+            ? 'Enter your email to receive a password reset link'
+            : (isLogin 
+              ? 'Sign in to leave comments and engage with posts'
+              : 'Create an account to join The Unfiltered Voice community'
+            )
           }
         </CardDescription>
       </CardHeader>
       
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {!isLogin && (
+          {!isLogin && !isResetPassword && (
             <div className="space-y-2">
               <Label htmlFor="displayName">Display Name</Label>
               <Input
@@ -90,38 +107,70 @@ export function AuthForm({ onClose }: AuthFormProps) {
             />
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              placeholder="••••••••"
-            />
-          </div>
+          {!isResetPassword && (
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+              />
+            </div>
+          )}
           
           <Button 
             type="submit" 
             className="w-full" 
             disabled={loading}
           >
-            {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
+            {loading ? 'Please wait...' : (
+              isResetPassword ? 'Send Reset Email' : (isLogin ? 'Sign In' : 'Create Account')
+            )}
           </Button>
         </form>
         
-        <div className="mt-6 text-center">
-          <Button
-            variant="ghost"
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-primary hover:text-primary/80"
-          >
-            {isLogin 
-              ? "Don't have an account? Sign up" 
-              : "Already have an account? Sign in"
-            }
-          </Button>
+        <div className="mt-6 text-center space-y-2">
+          {!isResetPassword && (
+            <Button
+              variant="ghost"
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-primary hover:text-primary/80 block w-full"
+            >
+              {isLogin 
+                ? "Don't have an account? Sign up" 
+                : "Already have an account? Sign in"
+              }
+            </Button>
+          )}
+          
+          {isLogin && !isResetPassword && (
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setIsResetPassword(true);
+                setPassword('');
+              }}
+              className="text-muted-foreground hover:text-foreground text-sm block w-full"
+            >
+              Forgot your password? 🤦‍♀️
+            </Button>
+          )}
+          
+          {isResetPassword && (
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setIsResetPassword(false);
+                setIsLogin(true);
+              }}
+              className="text-primary hover:text-primary/80 block w-full"
+            >
+              Back to Sign In
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

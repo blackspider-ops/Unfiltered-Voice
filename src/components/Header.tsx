@@ -49,14 +49,6 @@ export function Header() {
         </nav>
 
         <div className="flex items-center space-x-4">
-          <Button 
-            variant="glow" 
-            size="sm" 
-            asChild
-            className="hidden sm:inline-flex"
-          >
-            <Link to="/meet-niyati">Meet Niyati</Link>
-          </Button>
           
           {user ? (
             <div className="flex items-center space-x-2">
@@ -123,12 +115,6 @@ export function Header() {
                 <Link to="/contact" className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
                   Contact
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/meet-niyati" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  Meet Niyati
                 </Link>
               </DropdownMenuItem>
               {user && (

@@ -110,7 +110,7 @@ export default function HomePage() {
                 </Link>
               </Button>
               <Button variant="ink" size="xl" asChild>
-                <Link to="/contact">Get in Touch</Link>
+                <Link to="/meet-niyati">Meet Niyati</Link>
               </Button>
             </div>
           </div>
