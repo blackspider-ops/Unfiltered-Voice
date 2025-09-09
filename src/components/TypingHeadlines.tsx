@@ -1,19 +1,19 @@
 import { useState, useEffect } from 'react';
-
-const quotes = [
-  "Raw thoughts. Real voices.",
-  "Where feelings are loud and unfiltered.",
-  "Thoughts without filters, words without walls.",
-  "Authentic stories, unvarnished truths.",
-  "The messy beauty of real life.",
-  "Unfiltered minds, unscripted hearts."
-];
+import { useSettings } from '@/hooks/useSettings';
 
 export function TypingHeadlines() {
+  const { settings } = useSettings();
   const [currentQuote, setCurrentQuote] = useState(0);
   const [displayText, setDisplayText] = useState('');
   const [isTyping, setIsTyping] = useState(true);
   const [charIndex, setCharIndex] = useState(0);
+
+  // Use settings quotes or fallback to default
+  const quotes = settings.typing_quotes.length > 0 ? settings.typing_quotes : [
+    "Raw thoughts. Real voices.",
+    "Where feelings are loud and unfiltered.",
+    "Thoughts without filters, words without walls."
+  ];
 
   useEffect(() => {
     const quote = quotes[currentQuote];

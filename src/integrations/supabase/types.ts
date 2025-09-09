@@ -65,6 +65,72 @@ export type Database = {
           },
         ]
       }
+      pending_changes: {
+        Row: {
+          id: string
+          change_type: string
+          target_id: string
+          requested_by: string
+          requested_at: string
+          status: string
+          reviewed_by: string | null
+          reviewed_at: string | null
+          review_notes: string | null
+          original_data: Json | null
+          proposed_changes: Json
+          change_summary: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          change_type: string
+          target_id: string
+          requested_by: string
+          requested_at?: string
+          status?: string
+          reviewed_by?: string | null
+          reviewed_at?: string | null
+          review_notes?: string | null
+          original_data?: Json | null
+          proposed_changes: Json
+          change_summary: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          change_type?: string
+          target_id?: string
+          requested_by?: string
+          requested_at?: string
+          status?: string
+          reviewed_by?: string | null
+          reviewed_at?: string | null
+          review_notes?: string | null
+          original_data?: Json | null
+          proposed_changes?: Json
+          change_summary?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_changes_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pending_changes_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           category: string
@@ -166,11 +232,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_perform_direct_action: {
+        Args: {
+          _user_id?: string
+        }
+        Returns: boolean
+      }
       delete_user_account: {
         Args: {
           _user_id: string
         }
         Returns: boolean
+      }
+      get_all_users: {
+        Args: Record<PropertyKey, never>
+        Returns: Array<{
+          id: string
+          email: string
+          display_name: string
+          role: string
+          registered_at: string
+          last_sign_in_at: string | null
+          email_confirmed_at: string | null
+        }>
       }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
@@ -183,9 +267,33 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_owner: {
+        Args: {
+          _user_id?: string
+        }
+        Returns: boolean
+      }
+      review_change_request: {
+        Args: {
+          _change_id: string
+          _action: string
+          _notes?: string
+        }
+        Returns: boolean
+      }
+      submit_change_request: {
+        Args: {
+          _change_type: string
+          _target_id: string
+          _original_data: any
+          _proposed_changes: any
+          _change_summary: string
+        }
+        Returns: string
+      }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "owner" | "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -313,7 +421,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["owner", "admin", "user"],
     },
   },
 } as const

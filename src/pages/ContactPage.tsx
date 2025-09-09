@@ -6,6 +6,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Mail, Instagram, Linkedin, Send, Heart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useSettings } from '@/hooks/useSettings';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -15,20 +18,60 @@ export default function ContactPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { settings } = useSettings();
+  
+  useDocumentTitle('Contact');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission (will need backend integration)
-    setTimeout(() => {
+    try {
+      // Save message to database
+      const { error: dbError } = await supabase
+        .from('contact_messages')
+        .insert([{
+          name: formData.name,
+          email: formData.email,
+          message: formData.message
+        }]);
+
+      if (dbError) throw dbError;
+
+      // Send email notification to owner using Edge Function
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-contact-email', {
+          body: {
+            name: formData.name,
+            email: formData.email,
+            message: formData.message
+          }
+        });
+
+        if (emailError) {
+          console.error('Email notification failed:', emailError);
+          // Don't fail the whole process if email fails
+        }
+      } catch (emailError) {
+        console.error('Email notification failed:', emailError);
+        // Don't fail the whole process if email fails
+      }
+
       toast({
         title: "Message sent!",
         description: "Thanks for reaching out. I'll get back to you soon!",
       });
       setFormData({ name: '', email: '', message: '' });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -152,7 +195,7 @@ export default function ContactPage() {
                 <h3 className="font-heading font-semibold mb-4">Find me elsewhere</h3>
                 <div className="space-y-3">
                   <a 
-                    href="https://instagram.com" 
+                    href={settings.social_instagram} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-3 rounded-lg bg-background/50 hover:bg-accent/10 hover:border-accent/30 border border-border/30 transition-all duration-200 group"
@@ -165,7 +208,7 @@ export default function ContactPage() {
                   </a>
                   
                   <a 
-                    href="https://linkedin.com" 
+                    href={settings.social_linkedin} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-3 rounded-lg bg-background/50 hover:bg-secondary/10 hover:border-secondary/30 border border-border/30 transition-all duration-200 group"

@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import { Brain, Newspaper, PenTool, BookOpen, ArrowRight, Quote } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useSettings } from '@/hooks/useSettings';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 const categoryMap = {
   'mental-health': {
@@ -37,17 +39,13 @@ const categoryMap = {
   }
 };
 
-const quotes = [
-  "The most powerful stories are the ones we're afraid to tell.",
-  "In a world of filters, be the raw truth.",
-  "Words are the windows to our unfiltered souls.",
-  "Sometimes the most beautiful thing you can be is honest.",
-  "Every story matters, especially the messy ones."
-];
-
 export default function HomePage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { settings } = useSettings();
+  
+  // Update document title and meta tags
+  useDocumentTitle();
 
   useEffect(() => {
     fetchCategoryData();
@@ -93,11 +91,7 @@ export default function HomePage() {
         <div className="container px-4 py-24 md:py-32 relative">
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 animate-fade-up">
-              The{' '}
-              <span className="bg-gradient-primary bg-clip-text text-transparent">
-                Unfiltered
-              </span>{' '}
-              Voice
+              {settings.hero_title}
             </h1>
             
             <div className="mb-8 animate-fade-up" style={{ animationDelay: '0.2s' }}>
@@ -105,7 +99,7 @@ export default function HomePage() {
             </div>
 
             <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto animate-fade-up" style={{ animationDelay: '0.4s' }}>
-              Where thoughts are raw, feelings are loud, and words don't wear filters.
+              {settings.hero_subtitle}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-up" style={{ animationDelay: '0.6s' }}>
@@ -129,19 +123,13 @@ export default function HomePage() {
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center gap-3 mb-8 justify-center">
               <Quote className="h-8 w-8 text-accent" />
-              <h2 className="text-3xl md:text-4xl font-heading font-bold">About The Voice</h2>
+              <h2 className="text-3xl md:text-4xl font-heading font-bold">{settings.about_title}</h2>
             </div>
             
             <div className="bg-card border border-border/50 rounded-2xl p-8 md:p-12 shadow-subtle">
               <div className="prose prose-lg mx-auto text-center">
-                <p className="text-foreground/90 leading-relaxed mb-6">
-                  I'm <strong className="text-primary">Niyati Singhal</strong>, a Grade 12 student from Delhi with a mind that refuses to stay quiet. 
-                  This blog is my sanctuary – a place where I can share the thoughts that keep me up at night, 
-                  the observations that others might find too intense, and the feelings that demand to be heard.
-                </p>
-                <p className="text-foreground/80 leading-relaxed">
-                  Here, you'll find my unfiltered take on mental health, current affairs, creative writing, and books that have shaped my perspective. 
-                  No sugar-coating, no pretense – just raw, honest storytelling from someone still figuring it all out.
+                <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">
+                  {settings.about_description}
                 </p>
               </div>
             </div>
@@ -237,12 +225,12 @@ export default function HomePage() {
           <div className="max-w-3xl mx-auto text-center">
             <div className="flex items-center justify-center gap-3 mb-8">
               <Quote className="h-6 w-6 text-accent" />
-              <h3 className="text-xl font-heading font-semibold">Words to Live By</h3>
+              <h3 className="text-xl font-heading font-semibold">{settings.words_to_live_by_title}</h3>
               <Quote className="h-6 w-6 text-accent rotate-180" />
             </div>
             
             <div className="space-y-4">
-              {quotes.map((quote, index) => (
+              {settings.words_to_live_by.map((quote, index) => (
                 <p 
                   key={index} 
                   className="text-lg font-medium text-foreground/80 italic animate-fade-in"
@@ -261,10 +249,10 @@ export default function HomePage() {
         <div className="container px-4">
           <div className="text-center">
             <p className="text-muted-foreground text-sm">
-              Built with ❤️ by her brother with a ton of tea
+              {settings.footer_text}
             </p>
             <p className="text-muted-foreground text-xs mt-2">
-              © 2024 The Unfiltered Voice. All rights reserved.
+              © 2024 {settings.site_name}. All rights reserved.
             </p>
           </div>
         </div>

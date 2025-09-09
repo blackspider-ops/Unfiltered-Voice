@@ -10,6 +10,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
+  isOwner: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,6 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
     // Set up auth state listener
@@ -27,19 +29,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Check if user is admin
+        // Check if user is admin or owner
         if (session?.user) {
           setTimeout(async () => {
             const { data } = await supabase
               .from('user_roles')
               .select('role')
               .eq('user_id', session.user.id)
-              .eq('role', 'admin')
-              .single();
-            setIsAdmin(!!data);
+              .in('role', ['admin', 'owner']);
+            
+            const roles = data || [];
+            const hasOwner = roles.some(r => r.role === 'owner');
+            const hasAdmin = roles.some(r => r.role === 'admin');
+            
+            setIsOwner(hasOwner);
+            setIsAdmin(hasAdmin || hasOwner); // Owners also have admin access
           }, 0);
         } else {
           setIsAdmin(false);
+          setIsOwner(false);
         }
         
         setLoading(false);
@@ -94,7 +102,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signUp,
       signIn,
       signOut,
-      isAdmin
+      isAdmin,
+      isOwner
     }}>
       {children}
     </AuthContext.Provider>

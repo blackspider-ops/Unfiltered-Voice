@@ -4,20 +4,28 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
-import { Trash2, Eye, EyeOff, Upload, Plus } from 'lucide-react';
+import { Trash2, Eye, EyeOff, FileText, MessageCircle, Users, BarChart3, Settings as SettingsIcon, Loader2, Edit, Crown, Mail as MailIcon, Tag } from 'lucide-react';
+import { BlogEditor } from '@/components/admin/BlogEditor';
+import { UserManagement } from '@/components/admin/UserManagement';
+import { Analytics } from '@/components/admin/Analytics';
+import { OwnerApproval } from '@/components/admin/OwnerApproval';
+import { Mail } from '@/components/admin/Mail';
+import { Categories } from '@/components/admin/Categories';
+import { Settings } from '@/components/admin/Settings';
 
 interface Post {
   id: string;
   title: string;
   category: string;
   slug: string;
+  content?: string;
+  pdf_url?: string;
+  cover_url?: string;
   uploaded_at: string;
   is_published: boolean;
   read_time_min: number;
@@ -33,22 +41,14 @@ interface Comment {
 }
 
 export default function AdminPage() {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, isOwner, loading } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [posts, setPosts] = useState<Post[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [activeTab, setActiveTab] = useState<'posts' | 'comments'>('posts');
   const [loadingData, setLoadingData] = useState(true);
-
-  // New post form state
-  const [newPost, setNewPost] = useState({
-    title: '',
-    category: 'mental-health',
-    slug: '',
-    pdf_url: '',
-    cover_url: '',
-    read_time_min: 5
-  });
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
+  const [activeTab, setActiveTab] = useState('analytics');
 
   useEffect(() => {
     if (!loading) {
@@ -75,7 +75,11 @@ export default function AdminPage() {
       setComments(commentsRes.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
-      toast.error('Failed to load admin data');
+      toast({
+        title: "Error",
+        description: "Failed to load admin data",
+        variant: "destructive",
+      });
     } finally {
       setLoadingData(false);
     }
@@ -94,10 +98,17 @@ export default function AdminPage() {
         post.id === postId ? { ...post, is_published: !isPublished } : post
       ));
 
-      toast.success(`Post ${!isPublished ? 'published' : 'unpublished'} successfully`);
+      toast({
+        title: "Success",
+        description: `Post ${!isPublished ? 'published' : 'unpublished'} successfully`,
+      });
     } catch (error) {
       console.error('Error updating post:', error);
-      toast.error('Failed to update post');
+      toast({
+        title: "Error",
+        description: "Failed to update post",
+        variant: "destructive",
+      });
     }
   };
 
@@ -105,6 +116,28 @@ export default function AdminPage() {
     if (!confirm('Are you sure you want to delete this post?')) return;
 
     try {
+      if (!isOwner) {
+        // Submit change request for admin users
+        const postToDelete = posts.find(p => p.id === postId);
+        
+        const { error } = await supabase.rpc('submit_change_request', {
+          _change_type: 'post_delete',
+          _target_id: postId,
+          _original_data: postToDelete,
+          _proposed_changes: { action: 'delete' },
+          _change_summary: `Delete post: ${postToDelete?.title}`
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Delete Request Submitted",
+          description: "Your delete request has been submitted for owner approval",
+        });
+        return;
+      }
+
+      // Owner can delete directly
       const { error } = await supabase
         .from('posts')
         .delete()
@@ -113,10 +146,17 @@ export default function AdminPage() {
       if (error) throw error;
 
       setPosts(posts.filter(post => post.id !== postId));
-      toast.success('Post deleted successfully');
+      toast({
+        title: "Success",
+        description: "Post deleted successfully",
+      });
     } catch (error) {
       console.error('Error deleting post:', error);
-      toast.error('Failed to delete post');
+      toast({
+        title: "Error",
+        description: "Failed to delete post",
+        variant: "destructive",
+      });
     }
   };
 
@@ -133,10 +173,17 @@ export default function AdminPage() {
         comment.id === commentId ? { ...comment, is_approved: !isApproved } : comment
       ));
 
-      toast.success(`Comment ${!isApproved ? 'approved' : 'hidden'} successfully`);
+      toast({
+        title: "Success",
+        description: `Comment ${!isApproved ? 'approved' : 'hidden'} successfully`,
+      });
     } catch (error) {
       console.error('Error updating comment:', error);
-      toast.error('Failed to update comment');
+      toast({
+        title: "Error",
+        description: "Failed to update comment",
+        variant: "destructive",
+      });
     }
   };
 
@@ -152,48 +199,34 @@ export default function AdminPage() {
       if (error) throw error;
 
       setComments(comments.filter(comment => comment.id !== commentId));
-      toast.success('Comment deleted successfully');
+      toast({
+        title: "Success",
+        description: "Comment deleted successfully",
+      });
     } catch (error) {
       console.error('Error deleting comment:', error);
-      toast.error('Failed to delete comment');
+      toast({
+        title: "Error",
+        description: "Failed to delete comment",
+        variant: "destructive",
+      });
     }
   };
 
-  const createPost = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      const { error } = await supabase
-        .from('posts')
-        .insert({
-          ...newPost,
-          slug: newPost.slug || newPost.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-        });
+  const handleEditPost = (post: Post) => {
+    setEditingPost(post);
+    setActiveTab('editor');
+  };
 
-      if (error) throw error;
-
-      setNewPost({
-        title: '',
-        category: 'mental-health',
-        slug: '',
-        pdf_url: '',
-        cover_url: '',
-        read_time_min: 5
-      });
-
-      toast.success('Post created successfully');
-      fetchData();
-    } catch (error: any) {
-      console.error('Error creating post:', error);
-      toast.error('Failed to create post: ' + error.message);
-    }
+  const handleCancelEdit = () => {
+    setEditingPost(null);
   };
 
   if (loading || loadingData) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-center">
-          <div className="w-8 h-8 bg-primary rounded-full mx-auto mb-4"></div>
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin" />
           <p className="text-muted-foreground">Loading admin panel...</p>
         </div>
       </div>
@@ -204,117 +237,76 @@ export default function AdminPage() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-display font-bold text-foreground mb-2">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             Admin Dashboard
           </h1>
           <p className="text-muted-foreground">
-            Manage your blog content and community
+            Manage your blog content, users, and analytics
           </p>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex space-x-1 mb-6 p-1 bg-surface rounded-lg w-fit">
-          <Button
-            variant={activeTab === 'posts' ? 'default' : 'ghost'}
-            onClick={() => setActiveTab('posts')}
-            className="rounded-md"
-          >
-            Posts ({posts.length})
-          </Button>
-          <Button
-            variant={activeTab === 'comments' ? 'default' : 'ghost'}
-            onClick={() => setActiveTab('comments')}
-            className="rounded-md"
-          >
-            Comments ({comments.length})
-          </Button>
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className={`grid w-full ${isOwner ? 'grid-cols-9' : 'grid-cols-8'}`}>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="editor" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Blog Editor
+            </TabsTrigger>
+            <TabsTrigger value="posts" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Posts ({posts.length})
+            </TabsTrigger>
+            <TabsTrigger value="categories" className="flex items-center gap-2">
+              <Tag className="h-4 w-4" />
+              Categories
+            </TabsTrigger>
+            <TabsTrigger value="comments" className="flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" />
+              Comments ({comments.length})
+            </TabsTrigger>
+            <TabsTrigger value="mail" className="flex items-center gap-2">
+              <MailIcon className="h-4 w-4" />
+              Mail
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Users
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <SettingsIcon className="h-4 w-4" />
+              Settings
+            </TabsTrigger>
+            {isOwner && (
+              <TabsTrigger value="approvals" className="flex items-center gap-2">
+                <Crown className="h-4 w-4" />
+                Approvals
+              </TabsTrigger>
+            )}
+          </TabsList>
 
-        {activeTab === 'posts' && (
-          <div className="space-y-6">
-            {/* Create New Post */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Plus className="h-5 w-5" />
-                  Create New Post
-                </CardTitle>
-                <CardDescription>
-                  Add a new post to your blog
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={createPost} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="title">Title</Label>
-                    <Input
-                      id="title"
-                      value={newPost.title}
-                      onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="category">Category</Label>
-                    <select
-                      id="category"
-                      value={newPost.category}
-                      onChange={(e) => setNewPost({ ...newPost, category: e.target.value })}
-                      className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                    >
-                      <option value="mental-health">Mind Matters</option>
-                      <option value="current-affairs">News & Views</option>
-                      <option value="creative-writing">Bleeding Ink</option>
-                      <option value="books">Reading Reflections</option>
-                    </select>
-                  </div>
-                  <div>
-                    <Label htmlFor="slug">Slug (optional)</Label>
-                    <Input
-                      id="slug"
-                      value={newPost.slug}
-                      onChange={(e) => setNewPost({ ...newPost, slug: e.target.value })}
-                      placeholder="auto-generated-from-title"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="readTime">Read Time (minutes)</Label>
-                    <Input
-                      id="readTime"
-                      type="number"
-                      min="1"
-                      value={newPost.read_time_min}
-                      onChange={(e) => setNewPost({ ...newPost, read_time_min: parseInt(e.target.value) })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="pdfUrl">PDF URL</Label>
-                    <Input
-                      id="pdfUrl"
-                      value={newPost.pdf_url}
-                      onChange={(e) => setNewPost({ ...newPost, pdf_url: e.target.value })}
-                      placeholder="/content/category/post.pdf"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="coverUrl">Cover Image URL</Label>
-                    <Input
-                      id="coverUrl"
-                      value={newPost.cover_url}
-                      onChange={(e) => setNewPost({ ...newPost, cover_url: e.target.value })}
-                      placeholder="/content/category/post.jpg"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <Button type="submit" className="w-full md:w-auto">
-                      Create Post
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+          <TabsContent value="analytics">
+            <Analytics />
+          </TabsContent>
 
+          <TabsContent value="editor">
+            <BlogEditor 
+              onPostCreated={() => {
+                fetchData();
+                setEditingPost(null);
+              }} 
+              editingPost={editingPost}
+              onCancelEdit={handleCancelEdit}
+            />
+          </TabsContent>
+
+          <TabsContent value="categories">
+            <Categories />
+          </TabsContent>
+
+          <TabsContent value="posts" className="space-y-6">
             {/* Posts List */}
             <div className="grid gap-4">
               {posts.map((post) => (
@@ -334,6 +326,14 @@ export default function AdminPage() {
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleEditPost(post)}
+                          title="Edit post"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         <Switch
                           checked={post.is_published}
                           onCheckedChange={() => togglePostPublication(post.id, post.is_published)}
@@ -342,6 +342,7 @@ export default function AdminPage() {
                           variant="outline"
                           size="icon"
                           onClick={() => deletePost(post.id)}
+                          title="Delete post"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -350,12 +351,18 @@ export default function AdminPage() {
                   </CardContent>
                 </Card>
               ))}
+              
+              {posts.length === 0 && (
+                <Card>
+                  <CardContent className="pt-6 text-center">
+                    <p className="text-muted-foreground">No posts yet. Create your first post in the Blog Editor tab.</p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
-          </div>
-        )}
+          </TabsContent>
 
-        {activeTab === 'comments' && (
-          <div className="space-y-4">
+          <TabsContent value="comments" className="space-y-4">
             {comments.map((comment) => (
               <Card key={comment.id}>
                 <CardContent className="pt-6">
@@ -400,8 +407,26 @@ export default function AdminPage() {
                 </CardContent>
               </Card>
             )}
-          </div>
-        )}
+          </TabsContent>
+
+          <TabsContent value="mail">
+            <Mail />
+          </TabsContent>
+
+          <TabsContent value="users">
+            <UserManagement />
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <Settings />
+          </TabsContent>
+
+          {isOwner && (
+            <TabsContent value="approvals">
+              <OwnerApproval />
+            </TabsContent>
+          )}
+        </Tabs>
       </div>
     </div>
   );
