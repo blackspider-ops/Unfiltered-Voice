@@ -51,6 +51,7 @@ const categoryTemplates = [
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [randomLoading, setRandomLoading] = useState(false);
 
   useEffect(() => {
     fetchCategoryData();

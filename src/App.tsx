@@ -14,6 +14,7 @@ import AuthPage from "./pages/AuthPage";
 import AdminPage from "./pages/AdminPage";
 import PostPage from "./pages/PostPage";
 import ProfilePage from "./pages/ProfilePage";
+import MeetNiyatiPage from "./pages/MeetNiyatiPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
                   <Route path="/" element={<HomePage />} />
                   <Route path="/categories" element={<CategoriesPage />} />
                   <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/meet-niyati" element={<MeetNiyatiPage />} />
                   <Route path="/auth" element={<AuthPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/admin" element={<AdminPage />} />

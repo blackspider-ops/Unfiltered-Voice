@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
-import { Trash2, Eye, EyeOff, FileText, MessageCircle, Users, BarChart3, Settings as SettingsIcon, Loader2, Edit, Crown, Mail as MailIcon, Tag } from 'lucide-react';
+import { Trash2, Eye, EyeOff, FileText, MessageCircle, Users, BarChart3, Settings as SettingsIcon, Loader2, Edit, Crown, Mail as MailIcon, Tag, User } from 'lucide-react';
 import { BlogEditor } from '@/components/admin/BlogEditor';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { Analytics } from '@/components/admin/Analytics';
@@ -17,6 +17,7 @@ import { OwnerApproval } from '@/components/admin/OwnerApproval';
 import { Mail } from '@/components/admin/Mail';
 import { Categories } from '@/components/admin/Categories';
 import { Settings } from '@/components/admin/Settings';
+import { AboutEditor } from '@/components/admin/AboutEditor';
 
 interface Post {
   id: string;
@@ -246,7 +247,7 @@ export default function AdminPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className={`grid w-full ${isOwner ? 'grid-cols-9' : 'grid-cols-8'}`}>
+          <TabsList className={`grid w-full ${isOwner ? 'grid-cols-10' : 'grid-cols-9'}`}>
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Analytics
@@ -262,6 +263,10 @@ export default function AdminPage() {
             <TabsTrigger value="categories" className="flex items-center gap-2">
               <Tag className="h-4 w-4" />
               Categories
+            </TabsTrigger>
+            <TabsTrigger value="about" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              About Page
             </TabsTrigger>
             <TabsTrigger value="comments" className="flex items-center gap-2">
               <MessageCircle className="h-4 w-4" />
@@ -304,6 +309,10 @@ export default function AdminPage() {
 
           <TabsContent value="categories">
             <Categories />
+          </TabsContent>
+
+          <TabsContent value="about">
+            <AboutEditor />
           </TabsContent>
 
           <TabsContent value="posts" className="space-y-6">
