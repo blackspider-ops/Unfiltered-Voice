@@ -1,15 +1,18 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
 import { Button } from '@/components/ui/enhanced-button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AuthForm } from './AuthForm';
-import { PenTool, Home, Grid3X3, Mail, LogOut, Settings, User, Menu } from 'lucide-react';
+import { PenTool, Home, Grid3X3, Mail, LogOut, Settings, User, Menu, Heart } from 'lucide-react';
 
 export function Header() {
   const { user, signOut, isAdmin } = useAuth();
   const { settings } = useSettings();
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+  const isMeetNiyatiPage = location.pathname === '/meet-niyati';
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -49,6 +52,19 @@ export function Header() {
         </nav>
 
         <div className="flex items-center space-x-4">
+          {!isHomePage && !isMeetNiyatiPage && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              asChild
+              className="hidden sm:inline-flex"
+            >
+              <Link to="/meet-niyati" className="flex items-center gap-2">
+                <Heart className="h-4 w-4" />
+                Meet Niyati
+              </Link>
+            </Button>
+          )}
           
           {user ? (
             <div className="flex items-center space-x-2">
@@ -111,6 +127,14 @@ export function Header() {
                   Categories
                 </Link>
               </DropdownMenuItem>
+              {!isHomePage && !isMeetNiyatiPage && (
+                <DropdownMenuItem asChild>
+                  <Link to="/meet-niyati" className="flex items-center gap-2">
+                    <Heart className="h-4 w-4" />
+                    Meet Niyati
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem asChild>
                 <Link to="/contact" className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />

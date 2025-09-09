@@ -133,206 +133,206 @@ export default function MeetNiyatiPage() {
 
     return (
         <div className="min-h-screen bg-background">
-                {/* Hero Section */}
-                <div className="relative overflow-hidden">
-                    <div
-                        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                        style={{ backgroundImage: `url(${content.cover_image_url})` }}
-                    >
-                        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
-                    </div>
+            {/* Hero Section */}
+            <div className="relative overflow-hidden">
+                <div
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                    style={{ backgroundImage: `url(${content.cover_image_url})` }}
+                >
+                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
+                </div>
 
-                    <div className="relative container mx-auto px-4 py-20">
-                        <div className="max-w-4xl mx-auto text-center">
-                            <div className="mb-8">
-                                <img
-                                    src={content.profile_image_url}
-                                    alt="Niyati"
-                                    className="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-primary/20 shadow-glow"
-                                    onError={(e) => {
-                                        e.currentTarget.src = '/placeholder-profile.jpg';
-                                    }}
-                                />
-                                <h1 className="text-4xl md:text-6xl font-heading font-bold mb-4 animate-fade-up">
-                                    {content.title}
-                                </h1>
-                                <p className="text-xl text-muted-foreground animate-fade-up" style={{ animationDelay: '0.2s' }}>
-                                    {content.subtitle}
-                                </p>
-                            </div>
+                <div className="relative container mx-auto px-4 py-20">
+                    <div className="max-w-4xl mx-auto text-center">
+                        <div className="mb-8">
+                            <img
+                                src={content.profile_image_url}
+                                alt="Niyati"
+                                className="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-primary/20 shadow-glow"
+                                onError={(e) => {
+                                    e.currentTarget.src = '/placeholder-profile.jpg';
+                                }}
+                            />
+                            <h1 className="text-4xl md:text-6xl font-heading font-bold mb-4 animate-fade-up">
+                                {content.title}
+                            </h1>
+                            <p className="text-xl text-muted-foreground animate-fade-up" style={{ animationDelay: '0.2s' }}>
+                                {content.subtitle}
+                            </p>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div className="container mx-auto px-4 py-16">
-                    <div className="max-w-4xl mx-auto space-y-16">
-                        {/* Bio Section */}
+            <div className="container mx-auto px-4 py-16">
+                <div className="max-w-4xl mx-auto space-y-16">
+                    {/* Bio Section */}
+                    <Card className="bg-card/70 backdrop-blur border-border/50">
+                        <CardContent className="p-8">
+                            <h2 className="text-2xl font-heading font-bold mb-6 flex items-center gap-2">
+                                <Heart className="h-6 w-6 text-accent" />
+                                About Me
+                            </h2>
+                            <div className="prose prose-lg max-w-none">
+                                {content.bio.split('\n\n').map((paragraph, index) => (
+                                    <p key={index} className="text-foreground/90 leading-relaxed mb-4">
+                                        {paragraph}
+                                    </p>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Interests & Fun Facts */}
+                    <div className="grid md:grid-cols-2 gap-8">
+                        {/* Interests */}
                         <Card className="bg-card/70 backdrop-blur border-border/50">
                             <CardContent className="p-8">
-                                <h2 className="text-2xl font-heading font-bold mb-6 flex items-center gap-2">
-                                    <Heart className="h-6 w-6 text-accent" />
-                                    About Me
-                                </h2>
-                                <div className="prose prose-lg max-w-none">
-                                    {content.bio.split('\n\n').map((paragraph, index) => (
-                                        <p key={index} className="text-foreground/90 leading-relaxed mb-4">
-                                            {paragraph}
-                                        </p>
+                                <h3 className="text-xl font-heading font-bold mb-6 flex items-center gap-2">
+                                    <Coffee className="h-5 w-5 text-primary" />
+                                    What I Love
+                                </h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {content.interests.map((interest, index) => (
+                                        <Badge key={index} variant="secondary" className="text-sm">
+                                            {interest}
+                                        </Badge>
                                     ))}
                                 </div>
                             </CardContent>
                         </Card>
 
-                        {/* Interests & Fun Facts */}
-                        <div className="grid md:grid-cols-2 gap-8">
-                            {/* Interests */}
-                            <Card className="bg-card/70 backdrop-blur border-border/50">
-                                <CardContent className="p-8">
-                                    <h3 className="text-xl font-heading font-bold mb-6 flex items-center gap-2">
-                                        <Coffee className="h-5 w-5 text-primary" />
-                                        What I Love
-                                    </h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {content.interests.map((interest, index) => (
-                                            <Badge key={index} variant="secondary" className="text-sm">
-                                                {interest}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            {/* Fun Facts */}
-                            <Card className="bg-card/70 backdrop-blur border-border/50">
-                                <CardContent className="p-8">
-                                    <h3 className="text-xl font-heading font-bold mb-6 flex items-center gap-2">
-                                        <BookOpen className="h-5 w-5 text-secondary" />
-                                        Fun Facts
-                                    </h3>
-                                    <ul className="space-y-2">
-                                        {content.fun_facts.map((fact, index) => (
-                                            <li key={index} className="text-foreground/90 flex items-start gap-2">
-                                                <span className="text-accent mt-1">•</span>
-                                                {fact}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        {/* Favorite Quote */}
-                        <Card className="bg-gradient-subtle border-border/50">
-                            <CardContent className="p-8 text-center">
-                                <Pen className="h-8 w-8 text-accent mx-auto mb-4" />
-                                <blockquote className="text-xl font-heading italic text-foreground mb-4">
-                                    "{content.favorite_quote}"
-                                </blockquote>
-                                <cite className="text-muted-foreground">— {content.quote_author}</cite>
-                            </CardContent>
-                        </Card>
-
-                        {/* Social Links */}
-                        <Card className="bg-card/70 backdrop-blur border-border/50">
-                            <CardContent className="p-8 text-center">
-                                <h3 className="text-xl font-heading font-bold mb-6">Let's Connect</h3>
-                                <div className="flex justify-center gap-4 flex-wrap">
-                                    {Object.entries(content.social_links).map(([platform, handle]) => {
-                                        if (!handle) return null;
-                                        const Icon = getSocialIcon(platform);
-                                        return (
-                                            <Button
-                                                key={platform}
-                                                variant="outline"
-                                                size="lg"
-                                                asChild
-                                                className="flex items-center gap-2"
-                                            >
-                                                <a
-                                                    href={getSocialUrl(platform, handle)}
-                                                    target={platform !== 'email' ? '_blank' : undefined}
-                                                    rel={platform !== 'email' ? 'noopener noreferrer' : undefined}
-                                                >
-                                                    <Icon className="h-5 w-5" />
-                                                    {handle}
-                                                </a>
-                                            </Button>
-                                        );
-                                    })}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Get in Touch Section */}
+                        {/* Fun Facts */}
                         <Card className="bg-card/70 backdrop-blur border-border/50">
                             <CardContent className="p-8">
-                                <h2 className="text-2xl font-heading font-bold mb-6 flex items-center gap-2">
-                                    <Mail className="h-6 w-6 text-primary" />
-                                    Get in Touch
-                                </h2>
-                                <div className="text-center mb-8">
-                                    <p className="text-lg text-muted-foreground mb-6">
-                                        Have thoughts to share? Questions to ask? Or just want to say hello? 
-                                        I'd love to hear from you.
+                                <h3 className="text-xl font-heading font-bold mb-6 flex items-center gap-2">
+                                    <BookOpen className="h-5 w-5 text-secondary" />
+                                    Fun Facts
+                                </h3>
+                                <ul className="space-y-2">
+                                    {content.fun_facts.map((fact, index) => (
+                                        <li key={index} className="text-foreground/90 flex items-start gap-2">
+                                            <span className="text-accent mt-1">•</span>
+                                            {fact}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Favorite Quote */}
+                    <Card className="bg-gradient-subtle border-border/50">
+                        <CardContent className="p-8 text-center">
+                            <Pen className="h-8 w-8 text-accent mx-auto mb-4" />
+                            <blockquote className="text-xl font-heading italic text-foreground mb-4">
+                                "{content.favorite_quote}"
+                            </blockquote>
+                            <cite className="text-muted-foreground">— {content.quote_author}</cite>
+                        </CardContent>
+                    </Card>
+
+                    {/* Social Links */}
+                    <Card className="bg-card/70 backdrop-blur border-border/50">
+                        <CardContent className="p-8 text-center">
+                            <h3 className="text-xl font-heading font-bold mb-6">Let's Connect</h3>
+                            <div className="flex justify-center gap-4 flex-wrap">
+                                {Object.entries(content.social_links).map(([platform, handle]) => {
+                                    if (!handle) return null;
+                                    const Icon = getSocialIcon(platform);
+                                    return (
+                                        <Button
+                                            key={platform}
+                                            variant="outline"
+                                            size="lg"
+                                            asChild
+                                            className="flex items-center gap-2"
+                                        >
+                                            <a
+                                                href={getSocialUrl(platform, handle)}
+                                                target={platform !== 'email' ? '_blank' : undefined}
+                                                rel={platform !== 'email' ? 'noopener noreferrer' : undefined}
+                                            >
+                                                <Icon className="h-5 w-5" />
+                                                {handle}
+                                            </a>
+                                        </Button>
+                                    );
+                                })}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Get in Touch Section */}
+                    <Card className="bg-card/70 backdrop-blur border-border/50">
+                        <CardContent className="p-8">
+                            <h2 className="text-2xl font-heading font-bold mb-6 flex items-center gap-2">
+                                <Mail className="h-6 w-6 text-primary" />
+                                Get in Touch
+                            </h2>
+                            <div className="text-center mb-8">
+                                <p className="text-lg text-muted-foreground mb-6">
+                                    Have thoughts to share? Questions to ask? Or just want to say hello?
+                                    I'd love to hear from you.
+                                </p>
+                                <Button variant="hero" size="lg" asChild>
+                                    <Link to="/contact" className="flex items-center gap-2">
+                                        <Mail className="h-5 w-5" />
+                                        Send me a message
+                                    </Link>
+                                </Button>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-6 mt-8">
+                                <div className="text-center">
+                                    <Heart className="h-8 w-8 text-accent mx-auto mb-3" />
+                                    <h3 className="font-heading font-semibold mb-2">Why reach out?</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        Whether you want to share your own story, discuss a post that resonated with you,
+                                        or just connect with someone who gets it – I'm here for genuine conversations.
                                     </p>
+                                </div>
+
+                                <div className="text-center">
+                                    <Coffee className="h-8 w-8 text-secondary mx-auto mb-3" />
+                                    <h3 className="font-heading font-semibold mb-2">Response time</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        I typically respond within 24-48 hours. Sometimes life gets busy,
+                                        but I promise to get back to every genuine message.
+                                    </p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Call to Action */}
+                    <div className="text-center">
+                        <Card className="bg-gradient-primary/10 border-primary/20">
+                            <CardContent className="p-8">
+                                <h3 className="text-2xl font-heading font-bold mb-4">
+                                    Ready to dive into my thoughts?
+                                </h3>
+                                <p className="text-muted-foreground mb-6">
+                                    Explore my latest posts and join the conversation.
+                                </p>
+                                <div className="flex justify-center gap-4 flex-wrap">
                                     <Button variant="hero" size="lg" asChild>
-                                        <Link to="/contact" className="flex items-center gap-2">
-                                            <Mail className="h-5 w-5" />
-                                            Send me a message
+                                        <Link to={getLatestPostUrl()} className="flex items-center gap-2">
+                                            {latestPost ? `Read "${latestPost.title}"` : 'Read Latest Posts'}
+                                            <ArrowRight className="h-5 w-5" />
+                                        </Link>
+                                    </Button>
+                                    <Button variant="outline" size="lg" asChild>
+                                        <Link to="/categories">
+                                            Browse Categories
                                         </Link>
                                     </Button>
                                 </div>
-                                
-                                <div className="grid md:grid-cols-2 gap-6 mt-8">
-                                    <div className="text-center">
-                                        <Heart className="h-8 w-8 text-accent mx-auto mb-3" />
-                                        <h3 className="font-heading font-semibold mb-2">Why reach out?</h3>
-                                        <p className="text-sm text-muted-foreground">
-                                            Whether you want to share your own story, discuss a post that resonated with you, 
-                                            or just connect with someone who gets it – I'm here for genuine conversations.
-                                        </p>
-                                    </div>
-                                    
-                                    <div className="text-center">
-                                        <Coffee className="h-8 w-8 text-secondary mx-auto mb-3" />
-                                        <h3 className="font-heading font-semibold mb-2">Response time</h3>
-                                        <p className="text-sm text-muted-foreground">
-                                            I typically respond within 24-48 hours. Sometimes life gets busy, 
-                                            but I promise to get back to every genuine message.
-                                        </p>
-                                    </div>
-                                </div>
                             </CardContent>
                         </Card>
-
-                        {/* Call to Action */}
-                        <div className="text-center">
-                            <Card className="bg-gradient-primary/10 border-primary/20">
-                                <CardContent className="p-8">
-                                    <h3 className="text-2xl font-heading font-bold mb-4">
-                                        Ready to dive into my thoughts?
-                                    </h3>
-                                    <p className="text-muted-foreground mb-6">
-                                        Explore my latest posts and join the conversation.
-                                    </p>
-                                    <div className="flex justify-center gap-4 flex-wrap">
-                                        <Button variant="hero" size="lg" asChild>
-                                            <Link to={getLatestPostUrl()} className="flex items-center gap-2">
-                                                {latestPost ? `Read "${latestPost.title}"` : 'Read Latest Posts'}
-                                                <ArrowRight className="h-5 w-5" />
-                                            </Link>
-                                        </Button>
-                                        <Button variant="outline" size="lg" asChild>
-                                            <Link to="/categories">
-                                                Browse Categories
-                                            </Link>
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
                     </div>
                 </div>
             </div>
+        </div>
     );
 }

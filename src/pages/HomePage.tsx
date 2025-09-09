@@ -252,7 +252,7 @@ export default function HomePage() {
               {settings.footer_text}
             </p>
             <p className="text-muted-foreground text-xs mt-2">
-              © 2024 {settings.site_name}. All rights reserved.
+              © 2025 {settings.site_name}. All rights reserved.
             </p>
           </div>
         </div>
