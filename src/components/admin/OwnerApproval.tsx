@@ -90,13 +90,30 @@ export function OwnerApproval() {
 
   const handleReview = async (changeId: string, action: 'approve' | 'reject') => {
     try {
+      console.log('Attempting to review change:', { changeId, action, notes: reviewNotes });
+      
+      // First check if user has owner permissions
+      const { data: isOwner, error: ownerError } = await supabase.rpc('is_owner');
+      console.log('User is owner:', isOwner, 'Error:', ownerError);
+      
+      if (ownerError) {
+        throw new Error(`Permission check failed: ${ownerError.message}`);
+      }
+      
+      if (!isOwner) {
+        throw new Error('Only owners can review change requests');
+      }
+
       const { error } = await supabase.rpc('review_change_request', {
         _change_id: changeId,
         _action: action,
         _notes: reviewNotes || null
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('RPC Error details:', error);
+        throw error;
+      }
 
       toast({
         title: "Success",
@@ -106,11 +123,12 @@ export function OwnerApproval() {
       setReviewingId(null);
       setReviewNotes('');
       fetchPendingChanges();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error reviewing change:', error);
+      const errorMessage = error?.message || error?.details || `Failed to ${action} change request`;
       toast({
         title: "Error",
-        description: `Failed to ${action} change request`,
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -355,7 +373,10 @@ export function OwnerApproval() {
                                 Approve
                               </Button>
                               <Button
-                                onClick={() => handleReview(change.id, 'reject')}
+                                onClick={() => {
+                                  console.log('Rejecting change:', change);
+                                  handleReview(change.id, 'reject');
+                                }}
                                 variant="destructive"
                                 className="flex items-center gap-2"
                               >
