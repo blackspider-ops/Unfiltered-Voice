@@ -1,6 +1,6 @@
 # The Unfiltered Voice
 
-A Gen-Z editorial blog where thoughts are raw, feelings are loud, and words don't wear filters.
+An editorial blog where thoughts are raw, feelings are loud, and words don't wear filters.
 
 ## Getting Started
 

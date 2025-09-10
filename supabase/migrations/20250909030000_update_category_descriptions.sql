@@ -4,7 +4,7 @@ SET description = 'Dive deep into the complexities of mental health, personal gr
 WHERE slug = 'mental-health';
 
 UPDATE public.categories 
-SET description = 'My unfiltered take on current events, social issues, and the world around us. No political correctness here – just honest opinions from a Gen-Z perspective.'
+SET description = 'My unfiltered take on current events, social issues, and the world around us. No political correctness here – just honest, authentic opinions.'
 WHERE slug = 'current-affairs';
 
 UPDATE public.categories 

@@ -269,7 +269,7 @@ export function OwnerCheatsheet() {
                                 </div>
                                 <div className="bg-red-50 dark:bg-red-950/20 p-3 rounded border border-red-200 dark:border-red-800">
                                     <Badge variant="outline" className="mb-2 bg-red-100 dark:bg-red-900">Current Affairs 🔥</Badge>
-                                    <p className="text-xs text-muted-foreground mb-1"><strong>What to write:</strong> Your hot takes on world events, social issues that make you mad, Gen-Z perspectives on boomer problems</p>
+                                    <p className="text-xs text-muted-foreground mb-1"><strong>What to write:</strong> Your hot takes on world events, social issues that make you mad, fresh perspectives on societal problems</p>
                                     <p className="text-xs text-red-600 dark:text-red-400"><strong>Vibe:</strong> "Let me explain why everyone else is wrong (respectfully)"</p>
                                 </div>
                                 <div className="bg-pink-50 dark:bg-pink-950/20 p-3 rounded border border-pink-200 dark:border-pink-800">
@@ -341,7 +341,7 @@ export function OwnerCheatsheet() {
                             <div className="bg-muted/30 p-4 rounded-lg">
                                 <h5 className="font-medium text-sm mb-2">When You're Feeling Fun 🎉</h5>
                                 <ul className="text-xs text-muted-foreground space-y-1">
-                                    <li>• "Rating [anything] as a Gen-Z"</li>
+                                    <li>• "Rating [anything] from my perspective"</li>
                                     <li>• "Books that made me cry in public"</li>
                                     <li>• "My villain origin story"</li>
                                     <li>• "Things that give me the ick"</li>

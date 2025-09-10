@@ -21,7 +21,7 @@ const categoryTemplates = [
     id: 'current-affairs',
     name: 'News & Views',
     description: 'Current affairs through an unfiltered, honest lens',
-    longDescription: 'My unfiltered take on current events, social issues, and the world around us. No political correctness here – just honest opinions from a Gen-Z perspective.',
+    longDescription: 'My unfiltered take on current events, social issues, and the world around us. No political correctness here – just honest, authentic opinions.',
     icon: Newspaper,
     color: 'text-secondary',
     gradient: 'from-secondary/20 to-primary/10',
