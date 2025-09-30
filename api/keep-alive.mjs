@@ -22,8 +22,8 @@ export default async function handler(req, res) {
     )
 
     // Perform a lightweight query - just check if we can connect
-    const { data, error } = await supabase
-      .from('navigation_items')
+    const { error } = await supabase
+      .from('categories')
       .select('id')
       .limit(1)
 
