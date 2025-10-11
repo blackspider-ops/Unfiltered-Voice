@@ -17,6 +17,7 @@ interface BlogPost {
     category: string;
     slug: string;
     content?: string;
+    excerpt?: string;
     pdf_url?: string;
     cover_url?: string;
     read_time_min: number;
@@ -31,6 +32,7 @@ interface BlogEditorProps {
         category: string;
         slug: string;
         content?: string;
+        excerpt?: string;
         pdf_url?: string;
         cover_url?: string;
         read_time_min: number;
@@ -46,6 +48,7 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
         category: 'mental-health',
         slug: '',
         content: '',
+        excerpt: '',
         pdf_url: '',
         cover_url: '',
         read_time_min: 5,
@@ -70,6 +73,7 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
                 category: editingPost.category,
                 slug: editingPost.slug,
                 content: editingPost.content || '',
+                excerpt: editingPost.excerpt || '',
                 pdf_url: editingPost.pdf_url || '',
                 cover_url: editingPost.cover_url || '',
                 read_time_min: editingPost.read_time_min,
@@ -84,6 +88,7 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
                 category: 'mental-health',
                 slug: '',
                 content: '',
+                excerpt: '',
                 pdf_url: '',
                 cover_url: '',
                 read_time_min: 5,
@@ -206,6 +211,35 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
         }));
     };
 
+    const sendEmailNotification = async (postId: string) => {
+        try {
+            const { data, error } = await supabase.functions.invoke('send-blog-notification', {
+                body: { postId }
+            });
+
+            if (error) {
+                console.error('Email notification error:', error);
+                toast({
+                    title: "Email notification failed",
+                    description: "Post was published but email notifications could not be sent",
+                    variant: "destructive",
+                });
+            } else {
+                toast({
+                    title: "Email notifications sent",
+                    description: `Notified ${data?.details?.successCount || 0} subscribers about the new post`,
+                });
+            }
+        } catch (error) {
+            console.error('Email notification error:', error);
+            toast({
+                title: "Email notification failed",
+                description: "Post was published but email notifications could not be sent",
+                variant: "destructive",
+            });
+        }
+    };
+
     const handleSave = async (publish: boolean = false) => {
         if (!post.title.trim()) {
             toast({
@@ -240,6 +274,7 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
                 title: post.title,
                 category: post.category,
                 slug: post.slug || generateSlug(post.title),
+                excerpt: post.excerpt || '',
                 pdf_url: contentType === 'pdf' ? post.pdf_url : '',
                 cover_url: post.cover_url || '',
                 read_time_min: post.read_time_min,
@@ -285,19 +320,42 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
 
             // Owner can make direct changes
             let error;
+            let postId: string | null = null;
+            
             if (isEditing && editingPost) {
+                // Check if we're publishing a previously unpublished post
+                const wasUnpublished = !editingPost.is_published && publish;
+                
                 // Update existing post
                 const result = await supabase
                     .from('posts')
                     .update(postData)
-                    .eq('id', editingPost.id);
+                    .eq('id', editingPost.id)
+                    .select('id')
+                    .single();
+                
                 error = result.error;
+                postId = result.data?.id || editingPost.id;
+                
+                // Send email notification if post is being published for the first time
+                if (!error && wasUnpublished && postId) {
+                    await sendEmailNotification(postId);
+                }
             } else {
                 // Create new post
                 const result = await supabase
                     .from('posts')
-                    .insert(postData);
+                    .insert(postData)
+                    .select('id')
+                    .single();
+                
                 error = result.error;
+                postId = result.data?.id;
+                
+                // Send email notification if post is being published
+                if (!error && publish && postId) {
+                    await sendEmailNotification(postId);
+                }
             }
 
             if (error) {
@@ -329,6 +387,7 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
             category: 'mental-health',
             slug: '',
             content: '',
+            excerpt: '',
             pdf_url: '',
             cover_url: '',
             read_time_min: 5,
@@ -412,6 +471,21 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
                             onChange={(e) => setPost(prev => ({ ...prev, read_time_min: parseInt(e.target.value) || 1 }))}
                         />
                     </div>
+                </div>
+
+                {/* Excerpt */}
+                <div className="space-y-2">
+                    <Label htmlFor="excerpt">Excerpt (Optional)</Label>
+                    <Textarea
+                        id="excerpt"
+                        value={post.excerpt}
+                        onChange={(e) => setPost(prev => ({ ...prev, excerpt: e.target.value }))}
+                        placeholder="Brief description of the post for email notifications and previews..."
+                        className="min-h-[80px]"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                        This will be used in email notifications and post previews
+                    </p>
                 </div>
 
                 {/* Content Type Selection */}
