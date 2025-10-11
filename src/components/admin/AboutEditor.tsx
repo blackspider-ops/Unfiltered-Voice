@@ -26,7 +26,7 @@ interface AboutContent {
     linkedin?: string;
   };
   fun_facts: string[];
-  quote_text: string;
+  favorite_quote: string;
   quote_author: string;
 }
 
@@ -54,7 +54,7 @@ When I'm not writing, you'll find me reading, exploring new coffee shops, or hav
     'I collect vintage notebooks',
     'I believe pineapple belongs on pizza'
   ],
-  quote_text: 'The most important thing is to try and inspire people so that they can be great at whatever they want to do.',
+  favorite_quote: 'The most important thing is to try and inspire people so that they can be great at whatever they want to do.',
   quote_author: 'Kobe Bryant'
 };
 
@@ -100,7 +100,7 @@ export function AboutEditor() {
           social_links: typeof data.social_links === 'object' && data.social_links !== null 
             ? data.social_links as { email?: string; instagram?: string; twitter?: string; linkedin?: string; }
             : {},
-          quote_text: data.quote_text || '',
+          favorite_quote: data.favorite_quote || '',
           quote_author: data.quote_author || '',
         };
         setContent(mappedData);
@@ -128,7 +128,7 @@ export function AboutEditor() {
           interests: content.interests,
           social_links: content.social_links,
           fun_facts: content.fun_facts,
-          quote_text: content.quote_text,
+          favorite_quote: content.favorite_quote,
           quote_author: content.quote_author,
           updated_at: new Date().toISOString()
         })
@@ -612,8 +612,8 @@ export function AboutEditor() {
               <Label htmlFor="quote">Quote</Label>
               <Textarea
                 id="quote"
-                value={content.quote_text}
-                onChange={(e) => setContent(prev => ({ ...prev, quote_text: e.target.value }))}
+                value={content.favorite_quote}
+                onChange={(e) => setContent(prev => ({ ...prev, favorite_quote: e.target.value }))}
                 placeholder="Enter your favorite quote..."
                 rows={3}
               />
