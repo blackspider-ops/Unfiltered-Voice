@@ -131,12 +131,8 @@ const ProfilePage = () => {
         }
       }
 
-      // Delete the auth user account (this will sign them out automatically)
-      const { error: authError } = await supabase.auth.deleteUser();
-      
-      if (authError) {
-        throw authError;
-      }
+      // Sign out the user (we can't delete auth users from client-side)
+      await supabase.auth.signOut();
 
       toast({
         title: "Account deleted",

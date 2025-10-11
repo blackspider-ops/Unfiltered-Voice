@@ -29,7 +29,7 @@ export const passwordRequirements: Omit<PasswordRequirement, 'met'>[] = [
   {
     id: 'special',
     label: 'One special character (!@#$%^&*)',
-    test: (password: string) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+    test: (password: string) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)
   }
 ];
 

@@ -6,14 +6,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  FileText, 
-  Users, 
-  Trash2, 
-  Edit, 
+import {
+  CheckCircle,
+  XCircle,
+  Clock,
+  FileText,
+  Users,
+  Trash2,
+  Edit,
   Plus,
   AlertTriangle,
   MessageSquare
@@ -30,8 +30,8 @@ interface PendingChange {
   reviewed_by?: string;
   reviewed_at?: string;
   review_notes?: string;
-  original_data?: any;
-  proposed_changes: any;
+  original_data?: unknown;
+  proposed_changes: unknown;
   change_summary: string;
   requester_name?: string;
 }
@@ -72,6 +72,8 @@ export function OwnerApproval() {
       // Combine the data
       const transformedData = changesData?.map(change => ({
         ...change,
+        change_type: change.change_type as 'post_edit' | 'post_delete' | 'post_create' | 'user_role_change',
+        status: change.status as 'pending' | 'approved' | 'rejected',
         requester_name: profilesData?.find(p => p.user_id === change.requested_by)?.display_name || 'Unknown User'
       })) || [];
 
@@ -195,9 +197,11 @@ export function OwnerApproval() {
           <div className="space-y-2">
             <h4 className="font-medium">Post to be deleted:</h4>
             <div className="bg-red-50 border border-red-200 p-3 rounded">
-              <div className="font-medium">{original_data?.title}</div>
+              <div className="font-medium">
+                {original_data && typeof original_data === 'object' && 'title' in original_data ? String((original_data as any).title) : 'Unknown'}
+              </div>
               <div className="text-sm text-muted-foreground">
-                Category: {original_data?.category} • {original_data?.read_time_min} min read
+                Category: {original_data && typeof original_data === 'object' && 'category' in original_data ? String((original_data as any).category) : 'Unknown'} • {original_data && typeof original_data === 'object' && 'read_time_min' in original_data ? String((original_data as any).read_time_min) : '0'} min read
               </div>
             </div>
           </div>
@@ -208,9 +212,9 @@ export function OwnerApproval() {
           <div className="space-y-2">
             <h4 className="font-medium">Role Change:</h4>
             <div className="bg-muted p-3 rounded">
-              <div>Action: {proposed_changes.action === 'add_role' ? 'Add' : 'Remove'} role</div>
-              <div>Role: {proposed_changes.role}</div>
-              <div>User: {original_data?.display_name || 'Unknown'}</div>
+              <div>Action: {proposed_changes && typeof proposed_changes === 'object' && 'action' in proposed_changes && (proposed_changes as any).action === 'add_role' ? 'Add' : 'Remove'} role</div>
+              <div>Role: {proposed_changes && typeof proposed_changes === 'object' && 'role' in proposed_changes ? String((proposed_changes as any).role) : 'Unknown'}</div>
+              <div>User: {original_data && typeof original_data === 'object' && 'display_name' in original_data ? String((original_data as any).display_name) : 'Unknown'}</div>
             </div>
           </div>
         );
@@ -259,7 +263,7 @@ export function OwnerApproval() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -271,7 +275,7 @@ export function OwnerApproval() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">

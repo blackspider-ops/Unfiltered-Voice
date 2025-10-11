@@ -11,28 +11,35 @@ All colors MUST be HSL. Literary, raw, unfiltered aesthetic.
 @layer base {
   :root {
     /* Dark theme base colors */
-    --background: 220 15% 6%;  /* #0B0D0E - Deep dark */
-    --foreground: 0 0% 93%;    /* #ECECEC - Soft white */
+    --background: 220 15% 6%;
+    /* #0B0D0E - Deep dark */
+    --foreground: 0 0% 93%;
+    /* #ECECEC - Soft white */
 
     /* Surface colors */
-    --card: 220 12% 8%;        /* #121417 - Subtle surface */
+    --card: 220 12% 8%;
+    /* #121417 - Subtle surface */
     --card-foreground: 0 0% 93%;
 
     --popover: 220 12% 8%;
     --popover-foreground: 0 0% 93%;
 
     /* Brand colors - Purple-Pink-Blue */
-    --primary: 264 85% 75%;    /* #A78BFA - Amethyst purple */
+    --primary: 264 85% 75%;
+    /* #A78BFA - Amethyst purple */
     --primary-foreground: 220 15% 6%;
 
-    --accent: 323 87% 70%;     /* #F472B6 - Vibrant pink */
+    --accent: 323 87% 70%;
+    /* #F472B6 - Vibrant pink */
     --accent-foreground: 220 15% 6%;
 
-    --secondary: 213 93% 68%;  /* #60A5FA - Electric blue */
+    --secondary: 213 93% 68%;
+    /* #60A5FA - Electric blue */
     --secondary-foreground: 220 15% 6%;
 
     /* Subtle UI colors */
-    --muted: 220 12% 12%;      /* Muted backgrounds */
+    --muted: 220 12% 12%;
+    /* Muted backgrounds */
     --muted-foreground: 0 0% 70%;
 
     --border: 220 12% 15%;
@@ -58,7 +65,7 @@ All colors MUST be HSL. Literary, raw, unfiltered aesthetic.
     /* Typography scale */
     --font-heading: 'Fraunces', serif;
     --font-body: 'Inter', sans-serif;
-    
+
     /* Animation easing */
     --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
     --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
@@ -109,12 +116,16 @@ All colors MUST be HSL. Literary, raw, unfiltered aesthetic.
 }
 
 @layer components {
+
   /* Prose styling for content */
   .prose {
     @apply max-w-none text-foreground;
   }
 
-  .prose h1, .prose h2, .prose h3, .prose h4 {
+  .prose h1,
+  .prose h2,
+  .prose h3,
+  .prose h4 {
     @apply font-heading text-foreground;
   }
 

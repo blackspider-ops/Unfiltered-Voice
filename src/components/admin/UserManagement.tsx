@@ -49,13 +49,13 @@ export function UserManagement() {
         if (profilesError) throw profilesError;
         
         // Transform data to match expected format
-        const transformedData = profilesData?.map(user => {
+        const transformedData = Array.isArray(profilesData) ? profilesData.map(user => {
           const roles = user.user_roles || [];
           let userRole: 'owner' | 'admin' | 'user' = 'user';
           
-          if (roles.find((r: any) => r.role === 'owner')) {
+          if (Array.isArray(roles) && roles.find((r: any) => r.role === 'owner')) {
             userRole = 'owner';
-          } else if (roles.find((r: any) => r.role === 'admin')) {
+          } else if (Array.isArray(roles) && roles.find((r: any) => r.role === 'admin')) {
             userRole = 'admin';
           }
           
@@ -68,11 +68,16 @@ export function UserManagement() {
             last_sign_in_at: null,
             email_confirmed_at: user.created_at
           };
-        }) || [];
+        }) : [];
         
         setUsers(transformedData);
       } else {
-        setUsers(rpcData || []);
+        // Cast the role to the correct type
+        const typedRpcData = (rpcData || []).map(user => ({
+          ...user,
+          role: user.role as 'owner' | 'admin' | 'user'
+        }));
+        setUsers(typedRpcData);
       }
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -86,7 +91,7 @@ export function UserManagement() {
     }
   };
 
-  const toggleUserRole = async (userId: string, currentRole: 'owner' | 'admin' | 'user') => {
+  const toggleUserRole = async (userId: string, currentRole: 'admin' | 'user') => {
     setUpdatingRole(userId);
     try {
       // Check if current user is owner (only owners can change roles)
@@ -350,7 +355,7 @@ export function UserManagement() {
                       <Button
                         variant={user.role === 'admin' ? 'destructive' : 'default'}
                         size="sm"
-                        onClick={() => toggleUserRole(user.id, user.role)}
+                        onClick={() => user.role !== 'owner' && toggleUserRole(user.id, user.role as 'admin' | 'user')}
                         disabled={updatingRole === user.id}
                       >
                         {updatingRole === user.id ? (
@@ -363,7 +368,7 @@ export function UserManagement() {
                       </Button>
                       
                       {/* Only current owners can make new owners */}
-                      {user.role !== 'owner' && ownerCount > 0 && (
+                      {(user.role === 'admin' || user.role === 'user') && ownerCount > 0 && (
                         <Button
                           variant="outline"
                           size="sm"

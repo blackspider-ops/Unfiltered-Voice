@@ -122,7 +122,7 @@ export function Comments({ postId }: CommentsProps) {
       setAnonymousName('');
       toast.success('Comment posted successfully!');
       fetchComments();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to post comment');
     } finally {
       setSubmitting(false);

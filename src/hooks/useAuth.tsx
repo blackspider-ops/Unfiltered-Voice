@@ -6,9 +6,9 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, displayName: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signInWithGoogle: () => Promise<{ error: any }>;
+  signUp: (email: string, password: string, displayName: string) => Promise<{ error: unknown }>;
+  signIn: (email: string, password: string) => Promise<{ error: unknown }>;
+  signInWithGoogle: () => Promise<{ error: unknown }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
   isOwner: boolean;
@@ -25,37 +25,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Get initial session first
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      // Check roles for initial session
-      if (session?.user) {
-        supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', session.user.id)
-          .in('role', ['admin', 'owner'])
-          .then(({ data }) => {
+    const initAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Check roles for initial session
+        if (session?.user) {
+          try {
+            const { data } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', session.user.id)
+              .in('role', ['admin', 'owner']);
+            
             const roles = data || [];
             const hasOwner = roles.some(r => r.role === 'owner');
             const hasAdmin = roles.some(r => r.role === 'admin');
             
             setIsOwner(hasOwner);
             setIsAdmin(hasAdmin || hasOwner);
-            setLoading(false);
-          })
-          .catch(() => {
+          } catch (error) {
             setIsAdmin(false);
             setIsOwner(false);
-            setLoading(false);
-          });
-      } else {
+          }
+        } else {
+          setIsAdmin(false);
+          setIsOwner(false);
+        }
+      } catch (error) {
         setIsAdmin(false);
         setIsOwner(false);
+      } finally {
         setLoading(false);
       }
-    });
+    };
+    
+    initAuth();
 
     // Set up auth state listener for future changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -64,23 +71,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .in('role', ['admin', 'owner'])
-            .then(({ data }) => {
+          const checkRoles = async () => {
+            try {
+              const { data } = await supabase
+                .from('user_roles')
+                .select('role')
+                .eq('user_id', session.user.id)
+                .in('role', ['admin', 'owner']);
+              
               const roles = data || [];
               const hasOwner = roles.some(r => r.role === 'owner');
               const hasAdmin = roles.some(r => r.role === 'admin');
               
               setIsOwner(hasOwner);
               setIsAdmin(hasAdmin || hasOwner);
-            })
-            .catch(() => {
+            } catch (error) {
               setIsAdmin(false);
               setIsOwner(false);
-            });
+            }
+          };
+          
+          checkRoles();
         } else {
           setIsAdmin(false);
           setIsOwner(false);

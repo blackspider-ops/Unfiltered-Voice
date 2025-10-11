@@ -63,8 +63,9 @@ export function AuthForm({ onClose }: AuthFormProps) {
           toast.error(result.error.message);
         }
       }
-    } catch (error: any) {
-      toast.error(error.message || 'An error occurred');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -75,11 +76,15 @@ export function AuthForm({ onClose }: AuthFormProps) {
     try {
       const { error } = await signInWithGoogle();
       if (error) {
-        toast.error(error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Sign in failed';
+        toast.error(errorMessage);
       }
       // Note: Success handling happens automatically via auth state change
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to sign in with Google');
+    } catch (error: unknown) {
+      const errorMessage = error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' 
+        ? error.message 
+        : 'Failed to sign in with Google';
+      toast.error(errorMessage);
     } finally {
       setGoogleLoading(false);
     }

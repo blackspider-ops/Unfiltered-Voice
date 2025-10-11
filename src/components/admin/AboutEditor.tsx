@@ -26,7 +26,7 @@ interface AboutContent {
     linkedin?: string;
   };
   fun_facts: string[];
-  favorite_quote: string;
+  quote_text: string;
   quote_author: string;
 }
 
@@ -54,7 +54,7 @@ When I'm not writing, you'll find me reading, exploring new coffee shops, or hav
     'I collect vintage notebooks',
     'I believe pineapple belongs on pizza'
   ],
-  favorite_quote: 'The most important thing is to try and inspire people so that they can be great at whatever they want to do.',
+  quote_text: 'The most important thing is to try and inspire people so that they can be great at whatever they want to do.',
   quote_author: 'Kobe Bryant'
 };
 
@@ -76,8 +76,8 @@ export function AboutEditor() {
 
   const fetchContent = async () => {
     try {
-      // Use any type for now since the table might not exist in types yet
-      const { data, error } = await (supabase as any)
+      // Use explicit type casting for about_content table
+      const { data, error } = await supabase
         .from('about_content')
         .select('*')
         .single();
@@ -87,7 +87,23 @@ export function AboutEditor() {
       }
 
       if (data) {
-        setContent(data as AboutContent);
+        // Map database fields to interface fields
+        const mappedData: AboutContent = {
+          id: data.id,
+          title: data.title,
+          subtitle: data.subtitle,
+          bio: data.bio,
+          profile_image_url: data.profile_image_url,
+          cover_image_url: data.cover_image_url,
+          interests: data.interests || [],
+          fun_facts: data.fun_facts || [],
+          social_links: typeof data.social_links === 'object' && data.social_links !== null 
+            ? data.social_links as { email?: string; instagram?: string; twitter?: string; linkedin?: string; }
+            : {},
+          quote_text: data.quote_text || '',
+          quote_author: data.quote_author || '',
+        };
+        setContent(mappedData);
       }
     } catch (error) {
       console.error('Error fetching about content:', error);
@@ -99,12 +115,21 @@ export function AboutEditor() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Use any type for now since the table might not exist in types yet
-      const { data, error } = await (supabase as any)
+      // Use explicit type casting for about_content table
+      const { data, error } = await supabase
         .from('about_content')
         .upsert({
           id: content.id || 'main',
-          ...content,
+          title: content.title,
+          subtitle: content.subtitle,
+          bio: content.bio,
+          profile_image_url: content.profile_image_url,
+          cover_image_url: content.cover_image_url,
+          interests: content.interests,
+          social_links: content.social_links,
+          fun_facts: content.fun_facts,
+          quote_text: content.quote_text,
+          quote_author: content.quote_author,
           updated_at: new Date().toISOString()
         })
         .select()
@@ -112,7 +137,23 @@ export function AboutEditor() {
 
       if (error) throw error;
 
-      setContent(data as AboutContent);
+      // Map database fields to interface fields
+      const mappedData: AboutContent = {
+        id: data.id,
+        title: data.title,
+        subtitle: data.subtitle,
+        bio: data.bio,
+        profile_image_url: data.profile_image_url,
+        cover_image_url: data.cover_image_url,
+        interests: data.interests || [],
+        fun_facts: data.fun_facts || [],
+        social_links: typeof data.social_links === 'object' && data.social_links !== null 
+          ? data.social_links as { email?: string; instagram?: string; twitter?: string; linkedin?: string; }
+          : {},
+        quote_text: data.quote_text || '',
+        quote_author: data.quote_author || '',
+      };
+      setContent(mappedData);
       toast({
         title: "Success",
         description: "About page content updated successfully",
@@ -224,7 +265,7 @@ export function AboutEditor() {
     } catch (error) {
       // If storage is not available, show manual URL input option
       if (error instanceof Error && (
-        error.message.includes('Storage bucket') || 
+        error.message.includes('Storage bucket') ||
         error.message.includes('Bucket not found') ||
         error.message.includes('permission denied')
       )) {
@@ -296,7 +337,7 @@ export function AboutEditor() {
                 placeholder="Meet Niyati"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="subtitle">Subtitle</Label>
               <Input
@@ -306,7 +347,7 @@ export function AboutEditor() {
                 placeholder="The Voice Behind The Unfiltered Thoughts"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="bio">Bio</Label>
               <Textarea
@@ -381,7 +422,7 @@ export function AboutEditor() {
                 />
               )}
             </div>
-            
+
             <div>
               <Label htmlFor="cover-image">Cover Image URL</Label>
               {storageAvailable ? (
@@ -457,7 +498,7 @@ export function AboutEditor() {
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            
+
             <div className="flex flex-wrap gap-2">
               {content.interests.map((interest, index) => (
                 <Badge key={index} variant="secondary" className="flex items-center gap-1">
@@ -492,7 +533,7 @@ export function AboutEditor() {
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            
+
             <div className="space-y-2">
               {content.fun_facts.map((fact, index) => (
                 <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded">
@@ -527,7 +568,7 @@ export function AboutEditor() {
                 autoComplete="email"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="instagram">Instagram</Label>
               <Input
@@ -537,7 +578,7 @@ export function AboutEditor() {
                 placeholder="@username"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="twitter">Twitter</Label>
               <Input
@@ -547,7 +588,7 @@ export function AboutEditor() {
                 placeholder="@username"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="linkedin">LinkedIn</Label>
               <Input
@@ -571,13 +612,13 @@ export function AboutEditor() {
               <Label htmlFor="quote">Quote</Label>
               <Textarea
                 id="quote"
-                value={content.favorite_quote}
-                onChange={(e) => setContent(prev => ({ ...prev, favorite_quote: e.target.value }))}
+                value={content.quote_text}
+                onChange={(e) => setContent(prev => ({ ...prev, quote_text: e.target.value }))}
                 placeholder="Enter your favorite quote..."
                 rows={3}
               />
             </div>
-            
+
             <div>
               <Label htmlFor="quote-author">Author</Label>
               <Input

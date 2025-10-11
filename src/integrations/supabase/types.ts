@@ -124,6 +124,8 @@ export type Database = {
           message: string
           created_at: string
           is_read: boolean | null
+          is_replied: boolean | null
+          updated_at: string
         }
         Insert: {
           id?: string
@@ -132,6 +134,8 @@ export type Database = {
           message: string
           created_at?: string
           is_read?: boolean | null
+          is_replied?: boolean | null
+          updated_at?: string
         }
         Update: {
           id?: string
@@ -140,6 +144,8 @@ export type Database = {
           message?: string
           created_at?: string
           is_read?: boolean | null
+          is_replied?: boolean | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -312,6 +318,48 @@ export type Database = {
           value?: Json
           description?: string | null
           category?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      categories: {
+        Row: {
+          id: string
+          slug: string
+          title: string
+          description: string
+          tags: string[]
+          color: string
+          icon: string
+          is_active: boolean
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          slug: string
+          title: string
+          description: string
+          tags?: string[]
+          color: string
+          icon: string
+          is_active?: boolean
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          slug?: string
+          title?: string
+          description?: string
+          tags?: string[]
+          color?: string
+          icon?: string
+          is_active?: boolean
+          sort_order?: number
           created_at?: string
           updated_at?: string
         }

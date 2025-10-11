@@ -42,7 +42,7 @@ export default function CategoryListPage() {
 
   useEffect(() => {
     // Filter and sort posts
-    let filtered = posts.filter(post =>
+    const filtered = posts.filter(post =>
       post.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
 

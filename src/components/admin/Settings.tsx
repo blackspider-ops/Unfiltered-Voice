@@ -25,7 +25,7 @@ import { Badge } from '@/components/ui/badge';
 interface SiteSetting {
   id: string;
   key: string;
-  value: any;
+  value: unknown;
   description: string | null;
   category: string;
 }
@@ -181,10 +181,13 @@ export function Settings() {
 
       // Refresh settings to get updated data
       fetchSettings();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' 
+        ? error.message 
+        : "Failed to save settings";
       toast({
         title: "Error",
-        description: error.message || "Failed to save settings",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
