@@ -73,7 +73,7 @@ export default function CategoryPage() {
       if (error) throw error;
       setPosts(data || []);
     } catch (error) {
-      console.error('Error fetching posts:', error);
+      // Handle error silently
     } finally {
       setLoading(false);
     }

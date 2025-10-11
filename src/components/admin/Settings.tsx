@@ -98,11 +98,9 @@ export function Settings() {
         .order('category', { ascending: true });
 
       if (error) {
-        console.error('Supabase error:', error);
         throw error;
       }
 
-      console.log('Settings data:', data);
       setSettings(data || []);
       
       // Convert settings to form data
@@ -129,7 +127,6 @@ export function Settings() {
         meta_keywords: settingsMap.meta_keywords || ''
       });
     } catch (error) {
-      console.error('Error fetching settings:', error);
       toast({
         title: "Error",
         description: "Failed to load settings",
@@ -185,7 +182,6 @@ export function Settings() {
       // Refresh settings to get updated data
       fetchSettings();
     } catch (error: any) {
-      console.error('Error saving settings:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to save settings",
@@ -522,6 +518,7 @@ export function Settings() {
                   value={formData.contact_email}
                   onChange={(e) => setFormData(prev => ({ ...prev, contact_email: e.target.value }))}
                   placeholder="hello@niyatisinghal.com"
+                  autoComplete="email"
                 />
               </div>
               
@@ -532,6 +529,7 @@ export function Settings() {
                   value={formData.social_instagram}
                   onChange={(e) => setFormData(prev => ({ ...prev, social_instagram: e.target.value }))}
                   placeholder="https://instagram.com/username"
+                  autoComplete="url"
                 />
               </div>
               
@@ -542,6 +540,7 @@ export function Settings() {
                   value={formData.social_linkedin}
                   onChange={(e) => setFormData(prev => ({ ...prev, social_linkedin: e.target.value }))}
                   placeholder="https://linkedin.com/in/username"
+                  autoComplete="url"
                 />
               </div>
               

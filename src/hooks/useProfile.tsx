@@ -58,7 +58,7 @@ export function useProfile() {
         .eq('user_id', user.id);
 
       if (commentsError) {
-        console.warn('Error fetching comments count:', commentsError);
+        // Handle error silently
       }
 
       // Calculate stats
@@ -75,7 +75,6 @@ export function useProfile() {
       });
 
     } catch (err) {
-      console.error('Error fetching profile data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load profile data');
     } finally {
       setLoading(false);

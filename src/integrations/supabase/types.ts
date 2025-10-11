@@ -14,39 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
+      about_content: {
+        Row: {
+          id: string
+          title: string
+          subtitle: string
+          bio: string
+          profile_image_url: string
+          cover_image_url: string
+          interests: string[]
+          fun_facts: string[]
+          social_links: Json
+          quote_text: string
+          quote_author: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          subtitle: string
+          bio: string
+          profile_image_url: string
+          cover_image_url: string
+          interests?: string[]
+          fun_facts?: string[]
+          social_links?: Json
+          quote_text: string
+          quote_author: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          subtitle?: string
+          bio?: string
+          profile_image_url?: string
+          cover_image_url?: string
+          interests?: string[]
+          fun_facts?: string[]
+          social_links?: Json
+          quote_text?: string
+          quote_author?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           created_at: string
           display_name: string
           id: string
           is_approved: boolean | null
+          is_anonymous: boolean | null
           message: string
           parent_id: string | null
           post_id: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
           display_name: string
           id?: string
           is_approved?: boolean | null
+          is_anonymous?: boolean | null
           message: string
           parent_id?: string | null
           post_id: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
           display_name?: string
           id?: string
           is_approved?: boolean | null
+          is_anonymous?: boolean | null
           message?: string
           parent_id?: string | null
           post_id?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -64,6 +115,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      contact_messages: {
+        Row: {
+          id: string
+          name: string
+          email: string
+          message: string
+          created_at: string
+          is_read: boolean | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          email: string
+          message: string
+          created_at?: string
+          is_read?: boolean | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          email?: string
+          message?: string
+          created_at?: string
+          is_read?: boolean | null
+        }
+        Relationships: []
       }
       pending_changes: {
         Row: {
@@ -134,12 +212,13 @@ export type Database = {
       posts: {
         Row: {
           category: string
+          content: string | null
           cover_url: string | null
           created_at: string
           id: string
           is_published: boolean | null
           page_count: number | null
-          pdf_url: string
+          pdf_url: string | null
           read_time_min: number | null
           size_bytes: number | null
           slug: string
@@ -149,12 +228,13 @@ export type Database = {
         }
         Insert: {
           category: string
+          content?: string | null
           cover_url?: string | null
           created_at?: string
           id?: string
           is_published?: boolean | null
           page_count?: number | null
-          pdf_url: string
+          pdf_url?: string | null
           read_time_min?: number | null
           size_bytes?: number | null
           slug: string
@@ -164,12 +244,13 @@ export type Database = {
         }
         Update: {
           category?: string
+          content?: string | null
           cover_url?: string | null
           created_at?: string
           id?: string
           is_published?: boolean | null
           page_count?: number | null
-          pdf_url?: string
+          pdf_url?: string | null
           read_time_min?: number | null
           size_bytes?: number | null
           slug?: string
@@ -203,6 +284,36 @@ export type Database = {
           id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          id: string
+          key: string
+          value: Json
+          description: string | null
+          category: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          value: Json
+          description?: string | null
+          category?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          value?: Json
+          description?: string | null
+          category?: string | null
+          created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }

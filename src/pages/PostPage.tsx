@@ -31,9 +31,7 @@ const categoryLabels = {
 };
 
 export default function PostPage() {
-  console.log('PostPage component mounted');
   const { category, slug } = useParams();
-  console.log('URL params:', { category, slug });
   const navigate = useNavigate();
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
@@ -53,10 +51,7 @@ export default function PostPage() {
   }, [category, slug, navigate]);
 
   const fetchPost = async () => {
-    console.log('Fetching post with category:', category, 'slug:', slug);
-    
     if (!category || !slug) {
-      console.error('Missing category or slug');
       setLoading(false);
       return;
     }
@@ -70,12 +65,8 @@ export default function PostPage() {
         .eq('is_published', true)
         .single();
 
-      console.log('Post query result:', { data, error });
-
       if (error) {
-        console.error('Error fetching post:', error);
         if (error.code === 'PGRST116') {
-          console.log('Post not found, redirecting to 404');
           navigate('/404', { replace: true });
           return;
         }
@@ -83,14 +74,11 @@ export default function PostPage() {
       }
 
       if (data) {
-        console.log('Post data received:', data);
         setPost(data);
       } else {
-        console.log('No post data received');
         navigate('/404', { replace: true });
       }
     } catch (error) {
-      console.error('Error fetching post:', error);
       toast.error('Failed to load post');
       navigate('/', { replace: true });
     } finally {
@@ -258,9 +246,7 @@ export default function PostPage() {
                     border: 'none',
                     backgroundColor: '#1a1a1a'
                   }}
-                  onError={(e) => {
-                    console.error('PDF loading error:', e);
-                  }}
+                  onError={() => {}}
                 />
                 <p className="text-xs text-muted-foreground mt-2 text-center p-4">
                   Having trouble viewing? The PDF should load automatically. 

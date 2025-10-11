@@ -114,6 +114,7 @@ export function AuthForm({ onClose }: AuthFormProps) {
                 onChange={(e) => setDisplayName(e.target.value)}
                 required={!isLogin}
                 placeholder="How should we call you?"
+                autoComplete="name"
               />
             </div>
           )}
@@ -127,6 +128,7 @@ export function AuthForm({ onClose }: AuthFormProps) {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="your@email.com"
+              autoComplete="email"
             />
           </div>
           
@@ -140,6 +142,7 @@ export function AuthForm({ onClose }: AuthFormProps) {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="••••••••"
+                autoComplete={isLogin ? "current-password" : "new-password"}
               />
               {/* Show password strength for signup */}
               {!isLogin && password && (

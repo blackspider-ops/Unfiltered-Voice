@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Upload, FileText, Image, Save, Eye, X, Edit } from 'lucide-react';
+import { StorageSetupGuide } from './StorageSetupGuide';
 
 interface BlogPost {
     title: string;
@@ -57,6 +58,9 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
     const [pdfFile, setPdfFile] = useState<File | null>(null);
     const [coverFile, setCoverFile] = useState<File | null>(null);
     const [isEditing, setIsEditing] = useState(false);
+    const [storageAvailable, setStorageAvailable] = useState(true);
+    const [manualPdfUrl, setManualPdfUrl] = useState('');
+    const [manualCoverUrl, setManualCoverUrl] = useState('');
 
     // Load editing post data
     useEffect(() => {
@@ -124,7 +128,17 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
             .upload(filePath, file);
 
         if (uploadError) {
-            throw uploadError;
+            // Provide more helpful error messages
+            if (uploadError.message.includes('Bucket not found')) {
+                throw new Error('Storage bucket not found. Please contact the administrator to set up file storage.');
+            } else if (uploadError.message.includes('File size')) {
+                throw new Error('File is too large. Please choose a file smaller than 10MB.');
+            } else if (uploadError.message.includes('not allowed')) {
+                throw new Error('File type not allowed. Please upload images (JPG, PNG, GIF) or PDF files only.');
+            } else if (uploadError.message.includes('policy')) {
+                throw new Error('Upload permission denied. Please check storage policies in Supabase.');
+            }
+            throw new Error(`Upload failed: ${uploadError.message}`);
         }
 
         const { data } = supabase.storage
@@ -153,12 +167,25 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
                 description: `${type === 'pdf' ? 'PDF' : 'Cover image'} uploaded successfully`,
             });
         } catch (error) {
-            console.error('Upload error:', error);
-            toast({
-                title: "Upload failed",
-                description: error instanceof Error ? error.message : "Failed to upload file",
-                variant: "destructive",
-            });
+            // If storage is not available, show manual URL input option
+            if (error instanceof Error && (
+                error.message.includes('Storage bucket') || 
+                error.message.includes('Bucket not found') ||
+                error.message.includes('permission denied')
+            )) {
+                setStorageAvailable(false);
+                toast({
+                    title: "Storage not available",
+                    description: "File upload failed. You can enter URLs manually below.",
+                    variant: "destructive",
+                });
+            } else {
+                toast({
+                    title: "Upload failed",
+                    description: error instanceof Error ? error.message : "Failed to upload file",
+                    variant: "destructive",
+                });
+            }
         } finally {
             setUploading(false);
         }
@@ -286,7 +313,6 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
             handleCancelEdit();
             onPostCreated();
         } catch (error) {
-            console.error('Save error:', error);
             toast({
                 title: "Error",
                 description: error instanceof Error ? error.message : `Failed to ${isEditing ? 'update' : 'save'} post`,
@@ -432,29 +458,69 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
                     <div className="space-y-4">
                         <div className="space-y-2">
                             <Label>PDF File *</Label>
-                            <div className="flex items-center gap-2">
-                                <Input
-                                    type="file"
-                                    accept=".pdf"
-                                    onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
-                                    disabled={uploading}
-                                />
-                                <Button
-                                    type="button"
-                                    onClick={() => pdfFile && handleFileUpload(pdfFile, 'pdf')}
-                                    disabled={!pdfFile || uploading}
-                                    size="sm"
-                                >
-                                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                                    Upload
-                                </Button>
-                            </div>
+                            {storageAvailable ? (
+                                <div className="flex items-center gap-2">
+                                    <Input
+                                        type="file"
+                                        accept=".pdf"
+                                        onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
+                                        disabled={uploading}
+                                    />
+                                    <Button
+                                        type="button"
+                                        onClick={() => pdfFile && handleFileUpload(pdfFile, 'pdf')}
+                                        disabled={!pdfFile || uploading}
+                                        size="sm"
+                                    >
+                                        {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                                        Upload
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    <Input
+                                        type="url"
+                                        placeholder="Enter PDF URL (e.g., https://example.com/document.pdf)"
+                                        value={manualPdfUrl}
+                                        onChange={(e) => setManualPdfUrl(e.target.value)}
+                                    />
+                                    <Button
+                                        type="button"
+                                        onClick={() => {
+                                            if (manualPdfUrl.trim()) {
+                                                setPost(prev => ({ ...prev, pdf_url: manualPdfUrl.trim() }));
+                                                setManualPdfUrl('');
+                                                toast({
+                                                    title: "PDF URL added",
+                                                    description: "PDF URL has been set successfully",
+                                                });
+                                            }
+                                        }}
+                                        disabled={!manualPdfUrl.trim()}
+                                        size="sm"
+                                        variant="outline"
+                                    >
+                                        Set PDF URL
+                                    </Button>
+                                    <p className="text-sm text-muted-foreground">
+                                        File upload is not available. Please upload your PDF to a hosting service and enter the URL above.
+                                    </p>
+                                </div>
+                            )}
                             {post.pdf_url && (
                                 <div className="flex items-center gap-2">
-                                    <Badge variant="secondary">PDF Uploaded</Badge>
+                                    <Badge variant="secondary">PDF Set</Badge>
                                     <a href={post.pdf_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
                                         View PDF
                                     </a>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setPost(prev => ({ ...prev, pdf_url: '' }))}
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
                                 </div>
                             )}
                         </div>
@@ -464,29 +530,69 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
                 {/* Cover Image Upload */}
                 <div className="space-y-2">
                     <Label>Cover Image (Optional)</Label>
-                    <div className="flex items-center gap-2">
-                        <Input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
-                            disabled={uploading}
-                        />
-                        <Button
-                            type="button"
-                            onClick={() => coverFile && handleFileUpload(coverFile, 'cover')}
-                            disabled={!coverFile || uploading}
-                            size="sm"
-                        >
-                            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
-                            Upload
-                        </Button>
-                    </div>
+                    {storageAvailable ? (
+                        <div className="flex items-center gap-2">
+                            <Input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
+                                disabled={uploading}
+                            />
+                            <Button
+                                type="button"
+                                onClick={() => coverFile && handleFileUpload(coverFile, 'cover')}
+                                disabled={!coverFile || uploading}
+                                size="sm"
+                            >
+                                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
+                                Upload
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="space-y-2">
+                            <Input
+                                type="url"
+                                placeholder="Enter image URL (e.g., https://example.com/image.jpg)"
+                                value={manualCoverUrl}
+                                onChange={(e) => setManualCoverUrl(e.target.value)}
+                            />
+                            <Button
+                                type="button"
+                                onClick={() => {
+                                    if (manualCoverUrl.trim()) {
+                                        setPost(prev => ({ ...prev, cover_url: manualCoverUrl.trim() }));
+                                        setManualCoverUrl('');
+                                        toast({
+                                            title: "Cover image URL added",
+                                            description: "Cover image URL has been set successfully",
+                                        });
+                                    }
+                                }}
+                                disabled={!manualCoverUrl.trim()}
+                                size="sm"
+                                variant="outline"
+                            >
+                                Set Image URL
+                            </Button>
+                            <p className="text-sm text-muted-foreground">
+                                File upload is not available. Please upload your image to a hosting service and enter the URL above.
+                            </p>
+                        </div>
+                    )}
                     {post.cover_url && (
                         <div className="flex items-center gap-2">
-                            <Badge variant="secondary">Cover Uploaded</Badge>
+                            <Badge variant="secondary">Cover Image Set</Badge>
                             <a href={post.cover_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
                                 View Image
                             </a>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setPost(prev => ({ ...prev, cover_url: '' }))}
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
                         </div>
                     )}
                 </div>
@@ -521,6 +627,27 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
                         {isEditing ? 'Update & Publish' : 'Publish Now'}
                     </Button>
                 </div>
+                {/* Storage Setup Guide */}
+                {!storageAvailable && (
+                    <div className="space-y-4">
+                        <StorageSetupGuide />
+                        <div className="flex justify-center">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                    setStorageAvailable(true);
+                                    toast({
+                                        title: "Storage test enabled",
+                                        description: "Try uploading a file again to test storage.",
+                                    });
+                                }}
+                            >
+                                Test Storage Again
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </CardContent>
         </Card>
     );

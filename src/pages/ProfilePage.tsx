@@ -206,6 +206,7 @@ const ProfilePage = () => {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="Enter your display name"
+                autoComplete="name"
               />
             </div>
             
@@ -216,6 +217,7 @@ const ProfilePage = () => {
                 value={profile?.email || user.email || ''}
                 disabled
                 className="bg-muted"
+                autoComplete="email"
               />
               <p className="text-sm text-muted-foreground">
                 Email cannot be changed from this page

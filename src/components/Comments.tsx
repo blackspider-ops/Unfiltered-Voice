@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { AuthForm } from './AuthForm';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -68,7 +68,6 @@ export function Comments({ postId }: CommentsProps) {
       if (error) throw error;
       setComments(data || []);
     } catch (error) {
-      console.error('Error fetching comments:', error);
       toast.error('Failed to load comments');
     } finally {
       setLoading(false);
@@ -124,7 +123,6 @@ export function Comments({ postId }: CommentsProps) {
       toast.success('Comment posted successfully!');
       fetchComments();
     } catch (error: any) {
-      console.error('Error posting comment:', error);
       toast.error('Failed to post comment');
     } finally {
       setSubmitting(false);
@@ -183,6 +181,7 @@ export function Comments({ postId }: CommentsProps) {
                   onChange={(e) => setAnonymousName(e.target.value)}
                   placeholder="Your name (required for anonymous comments)"
                   required
+                  autoComplete="name"
                 />
                 <Textarea
                   value={newComment}
@@ -203,6 +202,12 @@ export function Comments({ postId }: CommentsProps) {
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Sign In</DialogTitle>
+                          <DialogDescription>
+                            Sign in to your account to comment with your profile.
+                          </DialogDescription>
+                        </DialogHeader>
                         <AuthForm />
                       </DialogContent>
                     </Dialog>

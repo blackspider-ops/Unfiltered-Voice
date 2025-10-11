@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
 import { Button } from '@/components/ui/enhanced-button';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AuthForm } from './AuthForm';
 import { PenTool, Home, Grid3X3, Mail, LogOut, Settings, User, Menu, Heart } from 'lucide-react';
@@ -101,6 +101,12 @@ export function Header() {
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Sign In</DialogTitle>
+                  <DialogDescription>
+                    Sign in to your account to leave comments and engage with posts.
+                  </DialogDescription>
+                </DialogHeader>
                 <AuthForm />
               </DialogContent>
             </Dialog>

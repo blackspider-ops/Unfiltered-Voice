@@ -49,11 +49,9 @@ export default function ContactPage() {
         });
 
         if (emailError) {
-          console.error('Email notification failed:', emailError);
           // Don't fail the whole process if email fails
         }
       } catch (emailError) {
-        console.error('Email notification failed:', emailError);
         // Don't fail the whole process if email fails
       }
 
@@ -63,7 +61,6 @@ export default function ContactPage() {
       });
       setFormData({ name: '', email: '', message: '' });
     } catch (error) {
-      console.error('Error sending message:', error);
       toast({
         title: "Error",
         description: "Failed to send message. Please try again.",
@@ -118,6 +115,7 @@ export default function ContactPage() {
                         placeholder="Your name"
                         required
                         className="bg-background/50"
+                        autoComplete="name"
                       />
                     </div>
                     <div className="space-y-2">
@@ -131,6 +129,7 @@ export default function ContactPage() {
                         placeholder="your.email@example.com"
                         required
                         className="bg-background/50"
+                        autoComplete="email"
                       />
                     </div>
                   </div>

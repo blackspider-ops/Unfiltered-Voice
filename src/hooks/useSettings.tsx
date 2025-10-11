@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { handleNetworkError, isOnline } from '@/utils/networkUtils';
 
 interface SiteSettings {
   site_name: string;
@@ -67,16 +68,41 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   const fetchSettings = async () => {
     try {
-      console.log('Fetching settings...');
-      const { data, error } = await supabase
-        .from('site_settings')
-        .select('key, value');
+      // Skip fetch if offline
+      if (!isOnline()) {
+        return;
+      }
+      
+      let data = null;
+      let error = null;
 
-      console.log('Settings query result:', { data, error });
+      try {
+        // Try direct Supabase call first
+        const result = await supabase
+          .from('site_settings')
+          .select('key, value');
+        
+        data = result.data;
+        error = result.error;
+      } catch (supabaseError) {
+        // Fallback to API route
+        try {
+          const response = await fetch('/api/settings');
+          if (response.ok) {
+            const apiResult = await response.json();
+            data = apiResult.data;
+            error = null;
+          } else {
+            throw new Error(`API call failed: ${response.status}`);
+          }
+        } catch (apiError) {
+          error = apiError;
+        }
+      }
 
       if (error) {
-        console.error('Settings fetch error:', error);
-        throw error;
+        // Don't throw error, just use defaults
+        return;
       }
 
       if (data && data.length > 0) {
@@ -104,7 +130,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         });
       }
     } catch (error) {
-      console.error('Error fetching settings:', error);
       // Keep default settings on error
     } finally {
       setLoading(false);

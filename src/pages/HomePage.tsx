@@ -76,7 +76,6 @@ export default function HomePage() {
 
       setCategories(categoryData);
     } catch (error) {
-      console.error('Error fetching categories:', error);
       // Fallback to empty data
       setCategories(Object.values(categoryMap).map(cat => ({ ...cat, posts: 0, latest: null })));
     } finally {

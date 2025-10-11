@@ -83,7 +83,6 @@ export default function CategoriesPage() {
 
       setCategories(enrichedCategories);
     } catch (error) {
-      console.error('Error fetching categories:', error);
       // Fallback to template data
       setCategories(categoryTemplates.map(cat => ({ ...cat, posts: 0 })));
     } finally {
@@ -109,7 +108,6 @@ export default function CategoriesPage() {
         navigate('/');
       }
     } catch (error) {
-      console.error('Error fetching random post:', error);
       navigate('/');
     } finally {
       setRandomLoading(false);

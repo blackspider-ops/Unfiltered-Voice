@@ -33,7 +33,6 @@ export function useLatestPost() {
 
       setLatestPost(data);
     } catch (error) {
-      console.error('Error fetching latest post:', error);
       setLatestPost(null);
     } finally {
       setLoading(false);

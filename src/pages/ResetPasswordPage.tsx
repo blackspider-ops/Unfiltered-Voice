@@ -48,7 +48,6 @@ export default function ResetPasswordPage() {
                     }
                 }
             } catch (error) {
-                console.error('Reset password error:', error);
                 toast.error('Something went wrong. Please try requesting a new reset link.');
                 setTimeout(() => navigate('/auth'), 2000);
             }
@@ -118,6 +117,7 @@ export default function ResetPasswordPage() {
                                     required
                                     placeholder="Enter new password"
                                     className="pr-10"
+                                    autoComplete="new-password"
                                 />
                                 <Button
                                     type="button"
@@ -146,6 +146,7 @@ export default function ResetPasswordPage() {
                                     required
                                     placeholder="Confirm new password"
                                     className="pr-10"
+                                    autoComplete="new-password"
                                 />
                                 <Button
                                     type="button"

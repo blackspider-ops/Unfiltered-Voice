@@ -83,7 +83,6 @@ export default function MeetNiyatiPage() {
                 setContent(data as AboutContent);
             }
         } catch (error) {
-            console.error('Error fetching about content:', error);
             // Use default content if fetch fails
         } finally {
             setLoading(false);
@@ -148,7 +147,7 @@ export default function MeetNiyatiPage() {
                             <img
                                 src={content.profile_image_url}
                                 alt="Niyati"
-                                className="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-primary/20 shadow-glow"
+                                className="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-primary/20 shadow-glow object-cover"
                                 onError={(e) => {
                                     e.currentTarget.src = '/placeholder-profile.jpg';
                                 }}

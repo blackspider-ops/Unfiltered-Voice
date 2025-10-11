@@ -67,7 +67,7 @@ export default function CategoryListPage() {
 
       setPosts(data || []);
     } catch (error) {
-      console.error('Error fetching posts:', error);
+      // Handle error silently
     } finally {
       setLoading(false);
     }

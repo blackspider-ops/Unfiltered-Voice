@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Plus, X, Save, Eye, Upload, Image as ImageIcon } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { StorageSetupGuide } from './StorageSetupGuide';
 
 interface AboutContent {
   id?: string;
@@ -63,6 +64,10 @@ export function AboutEditor() {
   const [saving, setSaving] = useState(false);
   const [newInterest, setNewInterest] = useState('');
   const [newFunFact, setNewFunFact] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [storageAvailable, setStorageAvailable] = useState(true);
+  const [profileFile, setProfileFile] = useState<File | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -168,6 +173,79 @@ export function AboutEditor() {
     }));
   };
 
+  const uploadFile = async (file: File, path: string): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `${path}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('blog-content')
+      .upload(filePath, file);
+
+    if (uploadError) {
+      // Provide more helpful error messages
+      if (uploadError.message.includes('Bucket not found')) {
+        throw new Error('Storage bucket not found. Please contact the administrator to set up file storage.');
+      } else if (uploadError.message.includes('File size')) {
+        throw new Error('File is too large. Please choose a file smaller than 10MB.');
+      } else if (uploadError.message.includes('not allowed')) {
+        throw new Error('File type not allowed. Please upload images (JPG, PNG, GIF) or PDF files only.');
+      } else if (uploadError.message.includes('policy')) {
+        throw new Error('Upload permission denied. Please check storage policies in Supabase.');
+      }
+      throw new Error(`Upload failed: ${uploadError.message}`);
+    }
+
+    const { data } = supabase.storage
+      .from('blog-content')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  };
+
+  const handleFileUpload = async (file: File, type: 'profile' | 'cover') => {
+    setUploading(true);
+    try {
+      const path = type === 'profile' ? 'profiles' : 'covers';
+      const url = await uploadFile(file, path);
+
+      if (type === 'profile') {
+        setContent(prev => ({ ...prev, profile_image_url: url }));
+        setProfileFile(null);
+      } else {
+        setContent(prev => ({ ...prev, cover_image_url: url }));
+        setCoverFile(null);
+      }
+
+      toast({
+        title: "Upload successful",
+        description: `${type === 'profile' ? 'Profile' : 'Cover'} image uploaded successfully`,
+      });
+    } catch (error) {
+      // If storage is not available, show manual URL input option
+      if (error instanceof Error && (
+        error.message.includes('Storage bucket') || 
+        error.message.includes('Bucket not found') ||
+        error.message.includes('permission denied')
+      )) {
+        setStorageAvailable(false);
+        toast({
+          title: "Storage not available",
+          description: "File upload failed. You can enter URLs manually.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Upload failed",
+          description: error instanceof Error ? error.message : "Failed to upload file",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -251,17 +329,47 @@ export function AboutEditor() {
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="profile-image">Profile Image URL</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="profile-image"
-                  value={content.profile_image_url}
-                  onChange={(e) => setContent(prev => ({ ...prev, profile_image_url: e.target.value }))}
-                  placeholder="https://example.com/profile.jpg"
-                />
-                <Button variant="outline" size="icon">
-                  <Upload className="h-4 w-4" />
-                </Button>
-              </div>
+              {storageAvailable ? (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      id="profile-image"
+                      value={content.profile_image_url}
+                      onChange={(e) => setContent(prev => ({ ...prev, profile_image_url: e.target.value }))}
+                      placeholder="https://example.com/profile.jpg"
+                      autoComplete="url"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setProfileFile(e.target.files?.[0] || null)}
+                      disabled={uploading}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => profileFile && handleFileUpload(profileFile, 'profile')}
+                      disabled={!profileFile || uploading}
+                      size="sm"
+                    >
+                      {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                      Upload
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    id="profile-image"
+                    value={content.profile_image_url}
+                    onChange={(e) => setContent(prev => ({ ...prev, profile_image_url: e.target.value }))}
+                    placeholder="https://example.com/profile.jpg"
+                    autoComplete="url"
+                  />
+                </div>
+              )}
               {content.profile_image_url && (
                 <img
                   src={content.profile_image_url}
@@ -276,17 +384,47 @@ export function AboutEditor() {
             
             <div>
               <Label htmlFor="cover-image">Cover Image URL</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="cover-image"
-                  value={content.cover_image_url}
-                  onChange={(e) => setContent(prev => ({ ...prev, cover_image_url: e.target.value }))}
-                  placeholder="https://example.com/cover.jpg"
-                />
-                <Button variant="outline" size="icon">
-                  <Upload className="h-4 w-4" />
-                </Button>
-              </div>
+              {storageAvailable ? (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      id="cover-image"
+                      value={content.cover_image_url}
+                      onChange={(e) => setContent(prev => ({ ...prev, cover_image_url: e.target.value }))}
+                      placeholder="https://example.com/cover.jpg"
+                      autoComplete="url"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
+                      disabled={uploading}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => coverFile && handleFileUpload(coverFile, 'cover')}
+                      disabled={!coverFile || uploading}
+                      size="sm"
+                    >
+                      {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                      Upload
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    id="cover-image"
+                    value={content.cover_image_url}
+                    onChange={(e) => setContent(prev => ({ ...prev, cover_image_url: e.target.value }))}
+                    placeholder="https://example.com/cover.jpg"
+                    autoComplete="url"
+                  />
+                </div>
+              )}
               {content.cover_image_url && (
                 <img
                   src={content.cover_image_url}
@@ -386,6 +524,7 @@ export function AboutEditor() {
                 value={content.social_links.email || ''}
                 onChange={(e) => updateSocialLink('email', e.target.value)}
                 placeholder="hello@example.com"
+                autoComplete="email"
               />
             </div>
             
@@ -450,6 +589,28 @@ export function AboutEditor() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Storage Setup Guide */}
+        {!storageAvailable && (
+          <div className="space-y-4">
+            <StorageSetupGuide />
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setStorageAvailable(true);
+                  toast({
+                    title: "Storage test enabled",
+                    description: "Try uploading a file again to test storage.",
+                  });
+                }}
+              >
+                Test Storage Again
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
