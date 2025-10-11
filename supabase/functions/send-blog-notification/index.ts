@@ -135,88 +135,78 @@ serve(async (req) => {
       </html>
     `
 
-    // Send emails to all subscribers with rate limiting (2 emails per second max)
-    const results = []
-    const batchSize = 2 // Resend free plan limit
-    const delayMs = 1000 // 1 second delay between batches
+    // Send one email with all subscribers in BCC (much more efficient!)
+    const subscriberEmails = subscribers.map(sub => sub.email)
+    console.log(`Sending blog notification to ${subscriberEmails.length} subscribers via BCC`)
 
-    for (let i = 0; i < subscribers.length; i += batchSize) {
-      const batch = subscribers.slice(i, i + batchSize)
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'The Unfiltered Voice <noreply@unfilteredvoice.me>',
+          to: ['noreply@unfilteredvoice.me'], // Send to self as primary recipient
+          bcc: subscriberEmails, // All subscribers in BCC
+          subject: `New Post: ${post.title}`,
+          html: emailHtml,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Failed to send BCC email:', errorText)
+        throw new Error(`Email sending failed: ${errorText}`)
+      }
+
+      const emailResult = await response.json()
+      console.log('BCC email sent successfully:', emailResult)
       
-      const batchPromises = batch.map(async (subscriber) => {
-        try {
-          const response = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${resendApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              from: 'The Unfiltered Voice <noreply@unfilteredvoice.me>',
-              to: [subscriber.email],
-              subject: `New Post: ${post.title}`,
-              html: emailHtml,
-            }),
-          })
+      // All emails were sent successfully in one go
+      const results = subscriberEmails.map(email => ({ email, success: true }))
+      const successCount = results.filter(r => r.success).length
+      const failureCount = 0 // BCC either works for all or fails for all
+      
+      console.log(`BCC email sent successfully to ${successCount} subscribers`)
+    } catch (error) {
+      console.error('BCC email failed:', error)
+      // If BCC fails, all emails fail
+      const results = subscriberEmails.map(email => ({ email, success: false }))
+      const successCount = 0
+      const failureCount = subscriberEmails.length
 
-          if (!response.ok) {
-            const errorText = await response.text()
-            console.error(`Failed to send email to ${subscriber.email}:`, errorText)
-            return { email: subscriber.email, success: false, error: errorText }
+      // Log the notification in the database
+      await supabaseClient
+        .from('email_notifications')
+        .insert({
+          post_id: postId,
+          notification_type: 'new_post',
+          recipients_count: subscribers.length,
+          success_count: successCount,
+          failure_count: failureCount,
+          sent_at: new Date().toISOString()
+        })
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: `Email notification sent successfully to ${successCount} subscribers via BCC`,
+          details: { 
+            successCount, 
+            failureCount, 
+            totalSubscribers: subscribers.length,
+            method: 'BCC',
+            efficient: true
           }
-
-          console.log(`Email sent successfully to ${subscriber.email}`)
-          return { email: subscriber.email, success: true }
-        } catch (error) {
-          console.error(`Error sending email to ${subscriber.email}:`, error)
-          return { email: subscriber.email, success: false, error: error.message }
-        }
-      })
-
-      // Wait for current batch to complete
-      const batchResults = await Promise.all(batchPromises)
-      results.push(...batchResults)
-
-      // Add delay between batches (except for the last batch)
-      if (i + batchSize < subscribers.length) {
-        console.log(`Sent batch ${Math.floor(i / batchSize) + 1}, waiting ${delayMs}ms before next batch...`)
-        await new Promise(resolve => setTimeout(resolve, delayMs))
-      }
-    }
-    const successCount = results.filter(r => r.success).length
-    const failureCount = results.filter(r => !r.success).length
-    
-    console.log(`Email sending completed: ${successCount} successful, ${failureCount} failed out of ${subscribers.length} total`)
-
-    // Log the notification in the database
-    await supabaseClient
-      .from('email_notifications')
-      .insert({
-        post_id: postId,
-        notification_type: 'new_post',
-        recipients_count: subscribers.length,
-        success_count: successCount,
-        failure_count: failureCount,
-        sent_at: new Date().toISOString()
-      })
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: `Email notifications completed: ${successCount} sent successfully${failureCount > 0 ? `, ${failureCount} failed` : ''}`,
-        details: { 
-          successCount, 
-          failureCount, 
-          totalSubscribers: subscribers.length,
-          rateLimited: true,
-          batchProcessing: true
-        }
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 
-      }
-    )
+        }
+      )
+    }
 
   } catch (error) {
     console.error('Error in send-blog-notification:', error)

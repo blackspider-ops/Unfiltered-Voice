@@ -73,18 +73,24 @@ export function AuthForm({ onClose }: AuthFormProps) {
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
+    console.log('Google sign-in initiated...');
+    
     try {
       const { error } = await signInWithGoogle();
       if (error) {
+        console.error('Google sign-in error:', error);
         const errorMessage = error instanceof Error ? error.message : 'Sign in failed';
-        toast.error(errorMessage);
+        toast.error(`Google sign-in failed: ${errorMessage}`);
+      } else {
+        console.log('Google sign-in successful, redirecting...');
       }
       // Note: Success handling happens automatically via auth state change
     } catch (error: unknown) {
+      console.error('Google sign-in exception:', error);
       const errorMessage = error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' 
         ? error.message 
         : 'Failed to sign in with Google';
-      toast.error(errorMessage);
+      toast.error(`Google sign-in error: ${errorMessage}`);
     } finally {
       setGoogleLoading(false);
     }
