@@ -18,6 +18,7 @@ interface User {
   last_sign_in_at: string | null;
   email_confirmed_at: string | null;
   email_notifications_enabled: boolean;
+  unsubscribed_by_user: boolean;
 }
 
 export function UserManagement() {
@@ -70,7 +71,8 @@ export function UserManagement() {
             registered_at: user.created_at,
             last_sign_in_at: null,
             email_confirmed_at: user.created_at,
-            email_notifications_enabled: user.email_notifications_enabled ?? true
+            email_notifications_enabled: user.email_notifications_enabled ?? true,
+            unsubscribed_by_user: user.unsubscribed_by_user ?? false
           };
         }) : [];
         
@@ -80,7 +82,8 @@ export function UserManagement() {
         const typedRpcData = (rpcData || []).map(user => ({
           ...user,
           role: user.role as 'owner' | 'admin' | 'user',
-          email_notifications_enabled: user.email_notifications_enabled ?? true
+          email_notifications_enabled: user.email_notifications_enabled ?? true,
+          unsubscribed_by_user: user.unsubscribed_by_user ?? false
         }));
         setUsers(typedRpcData);
       }
@@ -206,7 +209,17 @@ export function UserManagement() {
     }
   };
 
-  const toggleEmailNotifications = async (userId: string, currentEnabled: boolean) => {
+  const toggleEmailNotifications = async (userId: string, currentEnabled: boolean, unsubscribedByUser: boolean) => {
+    // Check if user unsubscribed themselves
+    if (unsubscribedByUser && !currentEnabled) {
+      toast({
+        title: "Cannot Override User Choice",
+        description: "This user unsubscribed themselves. They must resubscribe from their profile page.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Check if current user is owner (only owners can change email settings)
     const { data: currentUserRoles } = await supabase
       .from('user_roles')
@@ -229,13 +242,20 @@ export function UserManagement() {
       const newStatus = !currentEnabled;
       const { error } = await supabase
         .from('profiles')
-        .update({ email_notifications_enabled: newStatus })
+        .update({ 
+          email_notifications_enabled: newStatus,
+          unsubscribed_by_user: false // Reset user unsubscribe flag when owner changes it
+        })
         .eq('user_id', userId);
       
       if (error) throw error;
 
       setUsers(users.map(user => 
-        user.id === userId ? { ...user, email_notifications_enabled: newStatus } : user
+        user.id === userId ? { 
+          ...user, 
+          email_notifications_enabled: newStatus,
+          unsubscribed_by_user: false
+        } : user
       ));
 
       toast({
@@ -415,13 +435,18 @@ export function UserManagement() {
                           <BellOff className="h-3 w-3 text-red-500" />
                         )}
                         <span className="text-xs text-muted-foreground">
-                          {user.email_notifications_enabled ? 'Gets emails' : 'User unsubscribed'}
+                          {user.email_notifications_enabled 
+                            ? 'Gets emails' 
+                            : user.unsubscribed_by_user 
+                              ? 'User unsubscribed themselves'
+                              : 'Owner disabled'
+                          }
                         </span>
                       </div>
                       <Switch
                         checked={user.email_notifications_enabled}
-                        onCheckedChange={() => toggleEmailNotifications(user.id, user.email_notifications_enabled)}
-                        disabled={updatingNotifications === user.id}
+                        onCheckedChange={() => toggleEmailNotifications(user.id, user.email_notifications_enabled, user.unsubscribed_by_user)}
+                        disabled={updatingNotifications === user.id || (user.unsubscribed_by_user && !user.email_notifications_enabled)}
                         className="scale-75"
                       />
                     </div>

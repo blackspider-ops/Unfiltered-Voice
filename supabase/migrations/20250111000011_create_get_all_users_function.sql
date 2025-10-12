@@ -1,7 +1,7 @@
--- Drop existing function first, then create new one with email_notifications_enabled
+-- Drop existing function first, then create new one with email_notifications_enabled and unsubscribed_by_user
 DROP FUNCTION IF EXISTS public.get_all_users();
 
--- Create the get_all_users function to include email_notifications_enabled
+-- Create the get_all_users function to include email_notifications_enabled and unsubscribed_by_user
 CREATE OR REPLACE FUNCTION public.get_all_users()
 RETURNS TABLE (
   id UUID,
@@ -11,7 +11,8 @@ RETURNS TABLE (
   registered_at TIMESTAMPTZ,
   last_sign_in_at TIMESTAMPTZ,
   email_confirmed_at TIMESTAMPTZ,
-  email_notifications_enabled BOOLEAN
+  email_notifications_enabled BOOLEAN,
+  unsubscribed_by_user BOOLEAN
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -35,7 +36,8 @@ BEGIN
     p.created_at as registered_at,
     au.last_sign_in_at,
     au.email_confirmed_at,
-    COALESCE(p.email_notifications_enabled, true) as email_notifications_enabled
+    COALESCE(p.email_notifications_enabled, true) as email_notifications_enabled,
+    COALESCE(p.unsubscribed_by_user, false) as unsubscribed_by_user
   FROM public.profiles p
   LEFT JOIN auth.users au ON p.user_id = au.id
   ORDER BY p.created_at DESC;
