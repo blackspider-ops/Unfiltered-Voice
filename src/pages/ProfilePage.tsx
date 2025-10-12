@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, User, Mail, Calendar, Shield, MessageCircle, Activity, Edit, LogOut, Trash2, AlertTriangle } from 'lucide-react';
+import { Loader2, User, Mail, Calendar, Shield, MessageCircle, Activity, Edit, LogOut, Trash2, AlertTriangle, Bell, BellOff } from 'lucide-react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -20,6 +20,7 @@ const ProfilePage = () => {
   const [updating, setUpdating] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [displayName, setDisplayName] = useState(profile?.display_name || '');
+  const [resubscribing, setResubscribing] = useState(false);
 
   // Update display name when profile loads
   useEffect(() => {
@@ -72,6 +73,37 @@ const ProfilePage = () => {
         description: "Failed to sign out",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleResubscribe = async () => {
+    if (!user || !profile) return;
+    
+    setResubscribing(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ email_notifications_enabled: true })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Refresh profile data
+      window.location.reload();
+
+      toast({
+        title: "Successfully resubscribed",
+        description: "You will now receive email notifications about new blog posts",
+      });
+    } catch (error) {
+      console.error('Error resubscribing:', error);
+      toast({
+        title: "Error",
+        description: "Failed to resubscribe. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setResubscribing(false);
     }
   };
 
@@ -302,6 +334,79 @@ const ProfilePage = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Email Notifications Card */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            {profile?.email_notifications_enabled ? (
+              <Bell className="h-5 w-5 text-green-600" />
+            ) : (
+              <BellOff className="h-5 w-5 text-red-500" />
+            )}
+            Email Notifications
+          </CardTitle>
+          <CardDescription>
+            Manage your email notification preferences for new blog posts
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isAdmin ? (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Shield className="h-4 w-4 text-blue-600" />
+                <span className="font-medium text-blue-800">Administrator Account</span>
+              </div>
+              <p className="text-blue-700 text-sm">
+                As an administrator, you will always receive email notifications about new blog posts. 
+                This setting cannot be changed to ensure you stay informed about website activity.
+              </p>
+            </div>
+          ) : profile?.email_notifications_enabled ? (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Bell className="h-4 w-4 text-green-600" />
+                <span className="font-medium text-green-800">Email Notifications Enabled</span>
+              </div>
+              <p className="text-green-700 text-sm mb-3">
+                You're currently subscribed to receive email notifications when new blog posts are published.
+              </p>
+              <p className="text-xs text-green-600">
+                To unsubscribe, you can use the unsubscribe link in any email notification, 
+                or contact the website administrator.
+              </p>
+            </div>
+          ) : (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <BellOff className="h-4 w-4 text-red-600" />
+                <span className="font-medium text-red-800">Email Notifications Disabled</span>
+              </div>
+              <p className="text-red-700 text-sm mb-4">
+                You're currently unsubscribed from email notifications. You won't receive emails 
+                when new blog posts are published.
+              </p>
+              <Button
+                onClick={handleResubscribe}
+                disabled={resubscribing}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {resubscribing ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Resubscribing...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Bell className="h-4 w-4" />
+                    Resubscribe to Email Notifications
+                  </div>
+                )}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Activity Summary Card */}
       <Card className="mt-6">

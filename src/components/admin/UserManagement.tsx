@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, Shield, ShieldCheck, Search, Trash2, Mail } from 'lucide-react';
+import { Users, Shield, ShieldCheck, Search, Trash2, Mail, Bell, BellOff } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { formatDistanceToNow } from 'date-fns';
 
 interface User {
@@ -16,6 +17,7 @@ interface User {
   registered_at: string;
   last_sign_in_at: string | null;
   email_confirmed_at: string | null;
+  email_notifications_enabled: boolean;
 }
 
 export function UserManagement() {
@@ -24,6 +26,7 @@ export function UserManagement() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
+  const [updatingNotifications, setUpdatingNotifications] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -66,16 +69,18 @@ export function UserManagement() {
             role: userRole,
             registered_at: user.created_at,
             last_sign_in_at: null,
-            email_confirmed_at: user.created_at
+            email_confirmed_at: user.created_at,
+            email_notifications_enabled: user.email_notifications_enabled ?? true
           };
         }) : [];
         
         setUsers(transformedData);
       } else {
-        // Cast the role to the correct type
+        // Cast the role to the correct type and ensure email_notifications_enabled is included
         const typedRpcData = (rpcData || []).map(user => ({
           ...user,
-          role: user.role as 'owner' | 'admin' | 'user'
+          role: user.role as 'owner' | 'admin' | 'user',
+          email_notifications_enabled: user.email_notifications_enabled ?? true
         }));
         setUsers(typedRpcData);
       }
@@ -198,6 +203,56 @@ export function UserManagement() {
       });
     } finally {
       setUpdatingRole(null);
+    }
+  };
+
+  const toggleEmailNotifications = async (userId: string, currentEnabled: boolean) => {
+    // Check if current user is owner (only owners can change email settings)
+    const { data: currentUserRoles } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+    
+    const isCurrentUserOwner = currentUserRoles?.some(r => r.role === 'owner');
+    
+    if (!isCurrentUserOwner) {
+      toast({
+        title: "Permission Denied",
+        description: "Only owners can control email notification settings",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUpdatingNotifications(userId);
+    try {
+      const newStatus = !currentEnabled;
+      const { error } = await supabase
+        .from('profiles')
+        .update({ email_notifications_enabled: newStatus })
+        .eq('user_id', userId);
+      
+      if (error) throw error;
+
+      setUsers(users.map(user => 
+        user.id === userId ? { ...user, email_notifications_enabled: newStatus } : user
+      ));
+
+      toast({
+        title: "Success",
+        description: newStatus 
+          ? "User resubscribed to email notifications" 
+          : "User unsubscribed from email notifications",
+      });
+    } catch (error) {
+      console.error('Error updating email notifications:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update email notification settings",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingNotifications(null);
     }
   };
 
@@ -349,7 +404,37 @@ export function UserManagement() {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
+                  {/* Email Notifications Toggle - Only for regular users */}
+                  {user.role === 'user' && (
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 text-sm">
+                        {user.email_notifications_enabled ? (
+                          <Bell className="h-3 w-3 text-green-600" />
+                        ) : (
+                          <BellOff className="h-3 w-3 text-red-500" />
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                          {user.email_notifications_enabled ? 'Gets emails' : 'User unsubscribed'}
+                        </span>
+                      </div>
+                      <Switch
+                        checked={user.email_notifications_enabled}
+                        onCheckedChange={() => toggleEmailNotifications(user.id, user.email_notifications_enabled)}
+                        disabled={updatingNotifications === user.id}
+                        className="scale-75"
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Admin/Owner always get emails */}
+                  {(user.role === 'admin' || user.role === 'owner') && (
+                    <div className="flex items-center gap-1 text-sm">
+                      <Bell className="h-3 w-3 text-green-600" />
+                      <span className="text-xs text-muted-foreground">Always gets emails</span>
+                    </div>
+                  )}
+                  
                   {user.role !== 'owner' && (
                     <>
                       <Button

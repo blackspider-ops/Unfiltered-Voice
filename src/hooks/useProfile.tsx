@@ -48,7 +48,7 @@ export function useProfile() {
       // Fetch profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*, email_notifications_enabled')
         .eq('user_id', user.id)
         .single();
 

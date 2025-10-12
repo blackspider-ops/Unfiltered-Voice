@@ -37,15 +37,44 @@ serve(async (req) => {
       throw new Error('Post not found or not published')
     }
 
-    // Get all registered users (subscribers)
-    const { data: subscribers, error: subscribersError } = await supabaseClient
+    // Get all users with email notifications enabled
+    const { data: regularUsers, error: regularUsersError } = await supabaseClient
       .from('profiles')
-      .select('email, display_name')
+      .select('email, display_name, user_id')
+      .eq('email_notifications_enabled', true)
       .not('email', 'is', null)
 
-    if (subscribersError) {
-      throw new Error('Failed to fetch subscribers')
+    if (regularUsersError) {
+      console.error('Database error fetching regular users:', regularUsersError)
+      throw new Error(`Failed to fetch regular users: ${regularUsersError.message}`)
     }
+
+    // Get all admin and owner users (they always receive emails)
+    const { data: adminUsers, error: adminUsersError } = await supabaseClient
+      .from('profiles')
+      .select(`
+        email, 
+        display_name, 
+        user_id,
+        user_roles!inner(role)
+      `)
+      .in('user_roles.role', ['admin', 'owner'])
+      .not('email', 'is', null)
+
+    if (adminUsersError) {
+      console.error('Database error fetching admin users:', adminUsersError)
+      // Don't throw error, just use regular users
+    }
+
+    // Combine all subscribers (remove duplicates by email)
+    const allSubscribers = [...(regularUsers || []), ...(adminUsers || [])]
+    const uniqueSubscribers = allSubscribers.filter((user, index, self) => 
+      index === self.findIndex(u => u.email === user.email)
+    )
+    
+    const subscribers = uniqueSubscribers
+
+
 
     if (!subscribers || subscribers.length === 0) {
       return new Response(

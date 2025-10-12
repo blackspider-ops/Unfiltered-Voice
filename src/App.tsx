@@ -18,6 +18,7 @@ import PostPage from "./pages/PostPage";
 import ProfilePage from "./pages/ProfilePage";
 import MeetNiyatiPage from "./pages/MeetNiyatiPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import UnsubscribePage from "./pages/UnsubscribePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -70,6 +71,7 @@ const App = () => (
                     <Route path="/current-affairs" element={<CategoryPage />} />
                     <Route path="/creative-writing" element={<CategoryPage />} />
                     <Route path="/books" element={<CategoryPage />} />
+                    <Route path="/unsubscribe" element={<UnsubscribePage />} />
                     <Route path="/:category/:slug" element={<PostPage />} />
                     <Route path="/404" element={<NotFound />} />
                     <Route path="*" element={<NotFound />} />
