@@ -38,6 +38,13 @@ export function useProfile() {
       setLoading(true);
       setError(null);
 
+      // First try to create profile if missing
+      try {
+        await supabase.rpc('create_user_profile_if_missing');
+      } catch (createError) {
+        console.warn('Could not create missing profile:', createError);
+      }
+
       // Fetch profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')

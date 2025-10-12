@@ -34,6 +34,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Check roles for initial session
         if (session?.user) {
           try {
+            // First, check if profile exists
+            const { data: existingProfile } = await supabase
+              .from('profiles')
+              .select('user_id')
+              .eq('user_id', session.user.id)
+              .single();
+
+            // If profile doesn't exist, create it
+            if (!existingProfile) {
+              console.log('Profile missing on initial load, creating new profile...');
+              
+              // Extract display name from user metadata
+              const displayName = session.user.user_metadata?.full_name || 
+                                session.user.user_metadata?.name || 
+                                session.user.user_metadata?.display_name ||
+                                `${session.user.user_metadata?.given_name || ''} ${session.user.user_metadata?.family_name || ''}`.trim() ||
+                                session.user.email;
+
+              // Create profile
+              await supabase
+                .from('profiles')
+                .insert({
+                  user_id: session.user.id,
+                  display_name: displayName,
+                  email: session.user.email
+                });
+
+              // Create user role if it doesn't exist
+              const { data: existingRole } = await supabase
+                .from('user_roles')
+                .select('user_id')
+                .eq('user_id', session.user.id)
+                .single();
+
+              if (!existingRole) {
+                await supabase
+                  .from('user_roles')
+                  .insert({
+                    user_id: session.user.id,
+                    role: 'user'
+                  });
+              }
+
+              console.log('Profile created successfully on initial load');
+            }
+            
             const { data } = await supabase
               .from('user_roles')
               .select('role')
@@ -47,6 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setIsOwner(hasOwner);
             setIsAdmin(hasAdmin || hasOwner);
           } catch (error) {
+            console.error('Error checking roles or fixing profile:', error);
             setIsAdmin(false);
             setIsOwner(false);
           }
@@ -73,6 +120,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           const checkRoles = async () => {
             try {
+              // First, check if profile exists
+              const { data: existingProfile } = await supabase
+                .from('profiles')
+                .select('user_id')
+                .eq('user_id', session.user.id)
+                .single();
+
+              // If profile doesn't exist, create it
+              if (!existingProfile) {
+                console.log('Profile missing, creating new profile...');
+                
+                // Extract display name from user metadata
+                const displayName = session.user.user_metadata?.full_name || 
+                                  session.user.user_metadata?.name || 
+                                  session.user.user_metadata?.display_name ||
+                                  `${session.user.user_metadata?.given_name || ''} ${session.user.user_metadata?.family_name || ''}`.trim() ||
+                                  session.user.email;
+
+                // Create profile
+                await supabase
+                  .from('profiles')
+                  .insert({
+                    user_id: session.user.id,
+                    display_name: displayName,
+                    email: session.user.email
+                  });
+
+                // Create user role if it doesn't exist
+                const { data: existingRole } = await supabase
+                  .from('user_roles')
+                  .select('user_id')
+                  .eq('user_id', session.user.id)
+                  .single();
+
+                if (!existingRole) {
+                  await supabase
+                    .from('user_roles')
+                    .insert({
+                      user_id: session.user.id,
+                      role: 'user'
+                    });
+                }
+
+                console.log('Profile created successfully');
+              }
+              
               const { data } = await supabase
                 .from('user_roles')
                 .select('role')
@@ -86,6 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setIsOwner(hasOwner);
               setIsAdmin(hasAdmin || hasOwner);
             } catch (error) {
+              console.error('Error checking roles or fixing profile:', error);
               setIsAdmin(false);
               setIsOwner(false);
             }
