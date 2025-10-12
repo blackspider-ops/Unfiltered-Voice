@@ -188,7 +188,7 @@ export default function MeetNiyatiPage() {
                         <Card className="bg-card/70 backdrop-blur border-border/50">
                             <CardContent className="p-8">
                                 <h3 className="text-xl font-heading font-bold mb-6 flex items-center gap-2">
-                                    <Coffee className="h-5 w-5 text-primary" />
+                                    <Coffee className="h-5 w-5 text-secondary" />
                                     What I Love
                                 </h3>
                                 <div className="flex flex-wrap gap-2">
@@ -205,7 +205,7 @@ export default function MeetNiyatiPage() {
                         <Card className="bg-card/70 backdrop-blur border-border/50">
                             <CardContent className="p-8">
                                 <h3 className="text-xl font-heading font-bold mb-6 flex items-center gap-2">
-                                    <BookOpen className="h-5 w-5 text-secondary" />
+                                    <BookOpen className="h-5 w-5 text-primary" />
                                     Fun Facts
                                 </h3>
                                 <ul className="space-y-2">
