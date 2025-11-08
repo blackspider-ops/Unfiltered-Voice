@@ -15,6 +15,7 @@ interface Post {
   slug: string;
   cover_url: string | null;
   uploaded_at: string;
+  published_at: string;
   read_time_min: number;
   is_published: boolean;
 }
@@ -68,7 +69,7 @@ export default function CategoryPage() {
         .select('*')
         .eq('category', category)
         .eq('is_published', true)
-        .order('uploaded_at', { ascending: false });
+        .order('published_at', { ascending: false });
 
       if (error) throw error;
       setPosts(data || []);
@@ -197,7 +198,7 @@ export default function CategoryPage() {
                   <CardContent className="pt-0">
                     <div className="flex items-center text-xs text-muted-foreground">
                       <Calendar className="h-3 w-3 mr-1" />
-                      {formatDistanceToNow(new Date(post.uploaded_at), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(post.published_at || post.uploaded_at), { addSuffix: true })}
                     </div>
                   </CardContent>
                 </Card>

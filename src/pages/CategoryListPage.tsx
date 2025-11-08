@@ -15,6 +15,7 @@ interface Post {
   slug: string;
   cover_url: string | null;
   uploaded_at: string;
+  published_at: string;
   read_time_min: number;
 }
 
@@ -47,8 +48,8 @@ export default function CategoryListPage() {
     );
 
     filtered.sort((a, b) => {
-      const dateA = new Date(a.uploaded_at).getTime();
-      const dateB = new Date(b.uploaded_at).getTime();
+      const dateA = new Date(a.published_at || a.uploaded_at).getTime();
+      const dateB = new Date(b.published_at || b.uploaded_at).getTime();
       return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
     });
 
@@ -59,7 +60,7 @@ export default function CategoryListPage() {
     try {
       const { data, error } = await supabase
         .from('posts')
-        .select('id, title, slug, cover_url, uploaded_at, read_time_min')
+        .select('id, title, slug, cover_url, uploaded_at, published_at, read_time_min')
         .eq('category', category)
         .eq('is_published', true);
 
@@ -207,7 +208,7 @@ export default function CategoryListPage() {
                         <span className="text-muted-foreground text-sm">•</span>
                         <div className="flex items-center gap-1 text-muted-foreground text-sm">
                           <Calendar className="h-3 w-3" />
-                          {formatDistanceToNow(new Date(post.uploaded_at), { addSuffix: true })}
+                          {formatDistanceToNow(new Date(post.published_at || post.uploaded_at), { addSuffix: true })}
                         </div>
                       </div>
 

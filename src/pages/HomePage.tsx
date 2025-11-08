@@ -56,9 +56,9 @@ export default function HomePage() {
       // Get post counts by category
       const { data: posts, error } = await supabase
         .from('posts')
-        .select('category, title, slug, uploaded_at, cover_url')
+        .select('category, title, slug, uploaded_at, published_at, cover_url')
         .eq('is_published', true)
-        .order('uploaded_at', { ascending: false });
+        .order('published_at', { ascending: false });
 
       if (error) throw error;
 

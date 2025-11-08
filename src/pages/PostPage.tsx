@@ -20,6 +20,7 @@ interface Post {
   pdf_url: string | null;
   content: string | null;
   uploaded_at: string;
+  published_at: string;
   read_time_min: number;
 }
 
@@ -171,7 +172,7 @@ export default function PostPage() {
             </div>
             <span className="text-muted-foreground">•</span>
             <span className="text-muted-foreground text-sm">
-              {formatDistanceToNow(new Date(post.uploaded_at), { addSuffix: true })}
+              {formatDistanceToNow(new Date(post.published_at || post.uploaded_at), { addSuffix: true })}
             </span>
           </div>
 

@@ -429,7 +429,7 @@ export default function AdminPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-semibold text-foreground">{post.title}</h3>
-                          {post.is_published && post.published_at && new Date(post.published_at) > new Date() ? (
+                          {post.is_published && post.published_at && new Date(post.published_at + 'T00:00:00') > new Date() ? (
                             <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/20 dark:text-amber-400">
                               📅 Scheduled
                             </Badge>
@@ -441,9 +441,9 @@ export default function AdminPage() {
                         </div>
                         <p className="text-sm text-muted-foreground">
                           {post.category} • {post.read_time_min} min read • 
-                          {post.published_at && new Date(post.published_at) > new Date() ? (
+                          {post.published_at && new Date(post.published_at + 'T00:00:00') > new Date() ? (
                             <span className="text-amber-600 dark:text-amber-400">
-                              Scheduled for {new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              Scheduled for {new Date(post.published_at + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                             </span>
                           ) : (
                             formatDistanceToNow(new Date(post.published_at || post.uploaded_at), { addSuffix: true })

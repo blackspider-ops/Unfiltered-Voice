@@ -487,11 +487,11 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
                             value={post.published_at}
                             onChange={(e) => setPost(prev => ({ ...prev, published_at: e.target.value }))}
                         />
-                        {post.published_at && new Date(post.published_at) > new Date() ? (
+                        {post.published_at && new Date(post.published_at + 'T00:00:00') > new Date() ? (
                             <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/20 p-2 rounded">
                                 <span className="font-medium">📅 Scheduled:</span>
                                 <span>
-                                    This post will be published on {new Date(post.published_at).toLocaleDateString('en-US', { 
+                                    This post will be published on {new Date(post.published_at + 'T00:00:00').toLocaleDateString('en-US', { 
                                         year: 'numeric', 
                                         month: 'long', 
                                         day: 'numeric' 
