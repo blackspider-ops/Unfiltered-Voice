@@ -31,6 +31,7 @@ interface Post {
   uploaded_at: string;
   is_published: boolean;
   read_time_min: number;
+  published_at?: string;
 }
 
 interface Comment {
@@ -428,13 +429,25 @@ export default function AdminPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-semibold text-foreground">{post.title}</h3>
-                          <Badge variant={post.is_published ? 'default' : 'secondary'}>
-                            {post.is_published ? 'Published' : 'Draft'}
-                          </Badge>
+                          {post.is_published && post.published_at && new Date(post.published_at) > new Date() ? (
+                            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/20 dark:text-amber-400">
+                              📅 Scheduled
+                            </Badge>
+                          ) : (
+                            <Badge variant={post.is_published ? 'default' : 'secondary'}>
+                              {post.is_published ? 'Published' : 'Draft'}
+                            </Badge>
+                          )}
                         </div>
                         <p className="text-sm text-muted-foreground">
                           {post.category} • {post.read_time_min} min read • 
-                          {formatDistanceToNow(new Date(post.uploaded_at), { addSuffix: true })}
+                          {post.published_at && new Date(post.published_at) > new Date() ? (
+                            <span className="text-amber-600 dark:text-amber-400">
+                              Scheduled for {new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </span>
+                          ) : (
+                            formatDistanceToNow(new Date(post.published_at || post.uploaded_at), { addSuffix: true })
+                          )}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">

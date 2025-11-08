@@ -22,6 +22,7 @@ interface BlogPost {
     cover_url?: string;
     read_time_min: number;
     is_published: boolean;
+    published_at?: string;
 }
 
 interface BlogEditorProps {
@@ -37,6 +38,7 @@ interface BlogEditorProps {
         cover_url?: string;
         read_time_min: number;
         is_published: boolean;
+        published_at?: string;
     } | null;
     onCancelEdit?: () => void;
 }
@@ -52,7 +54,8 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
         pdf_url: '',
         cover_url: '',
         read_time_min: 5,
-        is_published: false
+        is_published: false,
+        published_at: new Date().toISOString().split('T')[0] // Default to today
     });
 
     const [contentType, setContentType] = useState<'text' | 'pdf'>('text');
@@ -77,7 +80,8 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
                 pdf_url: editingPost.pdf_url || '',
                 cover_url: editingPost.cover_url || '',
                 read_time_min: editingPost.read_time_min,
-                is_published: editingPost.is_published
+                is_published: editingPost.is_published,
+                published_at: editingPost.published_at ? new Date(editingPost.published_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
             });
             setContentType(editingPost.pdf_url ? 'pdf' : 'text');
             setIsEditing(true);
@@ -92,7 +96,8 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
                 pdf_url: '',
                 cover_url: '',
                 read_time_min: 5,
-                is_published: false
+                is_published: false,
+                published_at: new Date().toISOString().split('T')[0]
             });
             setContentType('text');
             setIsEditing(false);
@@ -279,6 +284,7 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
                 cover_url: post.cover_url || '',
                 read_time_min: post.read_time_min,
                 is_published: publish,
+                published_at: post.published_at ? new Date(post.published_at).toISOString() : new Date().toISOString(),
                 updated_at: new Date().toISOString(),
                 // Store text content in a separate field if needed
                 ...(contentType === 'text' && { content: post.content })
@@ -391,7 +397,8 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
             pdf_url: '',
             cover_url: '',
             read_time_min: 5,
-            is_published: false
+            is_published: false,
+            published_at: new Date().toISOString().split('T')[0]
         });
         setContentType('text');
         setIsEditing(false);
@@ -470,6 +477,32 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
                             value={post.read_time_min}
                             onChange={(e) => setPost(prev => ({ ...prev, read_time_min: parseInt(e.target.value) || 1 }))}
                         />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="publishDate">Publish Date</Label>
+                        <Input
+                            id="publishDate"
+                            type="date"
+                            value={post.published_at}
+                            onChange={(e) => setPost(prev => ({ ...prev, published_at: e.target.value }))}
+                        />
+                        {post.published_at && new Date(post.published_at) > new Date() ? (
+                            <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/20 p-2 rounded">
+                                <span className="font-medium">📅 Scheduled:</span>
+                                <span>
+                                    This post will be published on {new Date(post.published_at).toLocaleDateString('en-US', { 
+                                        year: 'numeric', 
+                                        month: 'long', 
+                                        day: 'numeric' 
+                                    })}
+                                </span>
+                            </div>
+                        ) : (
+                            <p className="text-xs text-muted-foreground">
+                                Set a custom publish date (backdate or schedule for future)
+                            </p>
+                        )}
                     </div>
                 </div>
 
