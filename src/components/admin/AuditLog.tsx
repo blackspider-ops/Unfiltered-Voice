@@ -30,7 +30,12 @@ export function AuditLog() {
             const { data, error } = await supabase
                 .rpc('get_audit_logs_with_users');
 
-            if (error) throw error;
+            if (error) {
+                console.error('Audit log error:', error);
+                throw error;
+            }
+            
+            console.log('Audit logs fetched:', data);
             
             setLogs((data || []).map(log => ({
                 ...log,
