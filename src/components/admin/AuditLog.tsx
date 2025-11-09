@@ -28,28 +28,17 @@ export function AuditLog() {
     const fetchAuditLogs = async () => {
         try {
             const { data, error } = await supabase
-                .from('posts_audit_log')
+                .from('posts_audit_log_with_users')
                 .select('*')
                 .order('changed_at', { ascending: false })
                 .limit(50);
 
             if (error) throw error;
-
-            // Fetch user emails for each log entry
-            const logsWithUsers = await Promise.all(
-                (data || []).map(async (log) => {
-                    if (log.changed_by) {
-                        const { data: userData } = await supabase.auth.admin.getUserById(log.changed_by);
-                        return {
-                            ...log,
-                            user_email: userData?.user?.email || 'Unknown User'
-                        };
-                    }
-                    return { ...log, user_email: 'System' };
-                })
-            );
-
-            setLogs(logsWithUsers);
+            
+            setLogs((data || []).map(log => ({
+                ...log,
+                user_email: log.user_email || 'System'
+            })));
         } catch (error) {
             console.error('Failed to fetch audit logs:', error);
         } finally {
