@@ -24,7 +24,7 @@ BEGIN
         pal.new_data,
         pal.changed_by,
         pal.changed_at,
-        au.email as user_email
+        au.email::TEXT as user_email
     FROM public.posts_audit_log pal
     LEFT JOIN auth.users au ON pal.changed_by = au.id
     WHERE public.has_role(auth.uid(), 'owner')

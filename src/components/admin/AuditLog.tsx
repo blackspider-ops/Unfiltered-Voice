@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { History, AlertCircle } from 'lucide-react';
+import { History, AlertCircle, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface AuditLogEntry {
@@ -30,12 +31,7 @@ export function AuditLog() {
             const { data, error } = await supabase
                 .rpc('get_audit_logs_with_users');
 
-            if (error) {
-                console.error('Audit log error:', error);
-                throw error;
-            }
-            
-            console.log('Audit logs fetched:', data);
+            if (error) throw error;
             
             setLogs((data || []).map(log => ({
                 ...log,
@@ -118,13 +114,25 @@ export function AuditLog() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <History className="h-5 w-5" />
-                    Audit Log
-                </CardTitle>
-                <CardDescription>
-                    Recent changes to blog posts (last 50 entries)
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <CardTitle className="flex items-center gap-2">
+                            <History className="h-5 w-5" />
+                            Audit Log
+                        </CardTitle>
+                        <CardDescription>
+                            Recent changes to blog posts (last 50 entries)
+                        </CardDescription>
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={fetchAuditLogs}
+                        disabled={loading}
+                    >
+                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Refresh'}
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent>
                 <ScrollArea className="h-[400px] pr-4">
