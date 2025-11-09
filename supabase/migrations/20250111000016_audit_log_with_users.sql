@@ -1,13 +1,37 @@
--- Create a view that joins audit logs with user emails
-CREATE OR REPLACE VIEW public.posts_audit_log_with_users AS
-SELECT 
-    pal.*,
-    au.email as user_email
-FROM public.posts_audit_log pal
-LEFT JOIN auth.users au ON pal.changed_by = au.id;
+-- Create a function to get audit logs with user emails
+CREATE OR REPLACE FUNCTION public.get_audit_logs_with_users()
+RETURNS TABLE (
+    id UUID,
+    post_id UUID,
+    action TEXT,
+    old_data JSONB,
+    new_data JSONB,
+    changed_by UUID,
+    changed_at TIMESTAMPTZ,
+    user_email TEXT
+)
+SECURITY DEFINER
+SET search_path = public
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        pal.id,
+        pal.post_id,
+        pal.action,
+        pal.old_data,
+        pal.new_data,
+        pal.changed_by,
+        pal.changed_at,
+        au.email as user_email
+    FROM public.posts_audit_log pal
+    LEFT JOIN auth.users au ON pal.changed_by = au.id
+    WHERE public.has_role(auth.uid(), 'owner')
+    ORDER BY pal.changed_at DESC
+    LIMIT 50;
+END;
+$$;
 
--- Grant access to the view
-GRANT SELECT ON public.posts_audit_log_with_users TO authenticated;
-
--- Add RLS policy for the view
-ALTER VIEW public.posts_audit_log_with_users SET (security_invoker = on);
+-- Grant execute permission
+GRANT EXECUTE ON FUNCTION public.get_audit_logs_with_users() TO authenticated;

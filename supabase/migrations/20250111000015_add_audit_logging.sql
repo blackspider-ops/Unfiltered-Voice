@@ -15,11 +15,11 @@ CREATE TABLE IF NOT EXISTS public.posts_audit_log (
 -- Enable RLS on audit log
 ALTER TABLE public.posts_audit_log ENABLE ROW LEVEL SECURITY;
 
--- Only admins and owners can view audit logs
-CREATE POLICY "Only admins can view audit logs" 
+-- Only owners can view audit logs
+CREATE POLICY "Only owners can view audit logs" 
 ON public.posts_audit_log 
 FOR SELECT 
-USING (public.has_role(auth.uid(), 'admin') OR public.has_role(auth.uid(), 'owner'));
+USING (public.has_role(auth.uid(), 'owner'));
 
 -- Create function to log post changes
 CREATE OR REPLACE FUNCTION public.log_post_changes()

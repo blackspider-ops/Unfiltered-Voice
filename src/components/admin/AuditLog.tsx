@@ -28,10 +28,7 @@ export function AuditLog() {
     const fetchAuditLogs = async () => {
         try {
             const { data, error } = await supabase
-                .from('posts_audit_log_with_users')
-                .select('*')
-                .order('changed_at', { ascending: false })
-                .limit(50);
+                .rpc('get_audit_logs_with_users');
 
             if (error) throw error;
             
