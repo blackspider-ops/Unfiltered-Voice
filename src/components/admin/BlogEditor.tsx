@@ -246,6 +246,19 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
     };
 
     const handleSave = async (publish: boolean = false) => {
+        // Safety check for editing mode - prevent accidental overwrites
+        if (isEditing && editingPost) {
+            const confirmEdit = window.confirm(
+                `⚠️ CONFIRM EDIT\n\n` +
+                `You are about to update:\n"${editingPost.title}"\n\n` +
+                `This will overwrite the existing content.\n\n` +
+                `Are you sure you want to continue?`
+            );
+            if (!confirmEdit) {
+                return;
+            }
+        }
+
         if (!post.title.trim()) {
             toast({
                 title: "Error",
@@ -328,11 +341,11 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
             let error;
             let postId: string | null = null;
             
-            if (isEditing && editingPost) {
-                // Check if we're publishing a previously unpublished post
+            if (isEditing && editingPost && editingPost.id) {
+                // EDITING MODE: Update existing post
                 const wasUnpublished = !editingPost.is_published && publish;
                 
-                // Update existing post
+                // Update existing post with explicit ID check
                 const result = await supabase
                     .from('posts')
                     .update(postData)
@@ -348,7 +361,7 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
                     await sendEmailNotification(postId);
                 }
             } else {
-                // Create new post
+                // CREATE MODE: Insert new post
                 const result = await supabase
                     .from('posts')
                     .insert(postData)
@@ -407,11 +420,18 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
 
     return (
         <Card>
-            <CardHeader>
+            <CardHeader className={isEditing ? "bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500" : ""}>
                 <CardTitle className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        {isEditing ? <Edit className="h-5 w-5" /> : <FileText className="h-5 w-5" />}
-                        {isEditing ? 'Edit Blog Post' : 'Blog Editor'}
+                        {isEditing ? <Edit className="h-5 w-5 text-amber-600" /> : <FileText className="h-5 w-5" />}
+                        {isEditing ? (
+                            <div className="flex items-center gap-2">
+                                <span className="text-amber-600">⚠️ EDITING:</span>
+                                <span className="font-semibold">{editingPost?.title}</span>
+                            </div>
+                        ) : (
+                            'Create New Blog Post'
+                        )}
                     </div>
                     {isEditing && (
                         <Button
@@ -426,7 +446,13 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
                     )}
                 </CardTitle>
                 <CardDescription>
-                    {isEditing ? 'Edit and update your blog post' : 'Create and publish new blog posts'}
+                    {isEditing ? (
+                        <span className="text-amber-700 dark:text-amber-400 font-medium">
+                            You are editing an existing post. Changes will overwrite the current content.
+                        </span>
+                    ) : (
+                        'Create and publish new blog posts'
+                    )}
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
