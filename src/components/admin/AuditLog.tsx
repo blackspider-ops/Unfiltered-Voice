@@ -14,6 +14,7 @@ interface AuditLogEntry {
     new_data: any;
     changed_at: string;
     changed_by: string | null;
+    user_email?: string;
 }
 
 export function AuditLog() {
@@ -33,7 +34,22 @@ export function AuditLog() {
                 .limit(50);
 
             if (error) throw error;
-            setLogs(data || []);
+
+            // Fetch user emails for each log entry
+            const logsWithUsers = await Promise.all(
+                (data || []).map(async (log) => {
+                    if (log.changed_by) {
+                        const { data: userData } = await supabase.auth.admin.getUserById(log.changed_by);
+                        return {
+                            ...log,
+                            user_email: userData?.user?.email || 'Unknown User'
+                        };
+                    }
+                    return { ...log, user_email: 'System' };
+                })
+            );
+
+            setLogs(logsWithUsers);
         } catch (error) {
             console.error('Failed to fetch audit logs:', error);
         } finally {
@@ -128,7 +144,7 @@ export function AuditLog() {
                                 className="border border-border rounded-lg p-4 hover:bg-accent/50 transition-colors"
                             >
                                 <div className="flex items-start justify-between mb-2">
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 flex-1">
                                         <Badge className={getActionColor(log.action)}>
                                             {getActionLabel(log.action)}
                                         </Badge>
@@ -138,9 +154,14 @@ export function AuditLog() {
                                                 : log.new_data?.title || 'Unknown Post'}
                                         </span>
                                     </div>
-                                    <span className="text-xs text-muted-foreground">
-                                        {formatDistanceToNow(new Date(log.changed_at), { addSuffix: true })}
-                                    </span>
+                                    <div className="flex flex-col items-end gap-1">
+                                        <span className="text-xs text-muted-foreground">
+                                            {formatDistanceToNow(new Date(log.changed_at), { addSuffix: true })}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">
+                                            by {log.user_email || 'Unknown'}
+                                        </span>
+                                    </div>
                                 </div>
 
                                 {log.action === 'UPDATE' && log.old_data && log.new_data && (

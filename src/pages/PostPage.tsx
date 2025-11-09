@@ -205,6 +205,7 @@ export default function PostPage() {
               postId={post.id}
               title={post.title}
               className="w-full rounded-lg overflow-hidden"
+              objectFit="contain"
             />
           </div>
         )}

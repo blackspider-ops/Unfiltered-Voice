@@ -7,9 +7,10 @@ interface PostCoverImageProps {
   postId: string;
   title: string;
   className?: string;
+  objectFit?: 'cover' | 'contain';
 }
 
-export function PostCoverImage({ src, alt, postId, title, className = "" }: PostCoverImageProps) {
+export function PostCoverImage({ src, alt, postId, title, className = "", objectFit = 'cover' }: PostCoverImageProps) {
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -41,7 +42,7 @@ export function PostCoverImage({ src, alt, postId, title, className = "" }: Post
       <img
         src={src}
         alt={alt}
-        className={`w-full h-auto object-contain transition-opacity duration-300 ${
+        className={`w-full ${objectFit === 'contain' ? 'h-auto' : 'h-full'} object-${objectFit} transition-opacity duration-300 ${
           imageLoaded ? 'opacity-100' : 'opacity-0'
         }`}
         onLoad={() => setImageLoaded(true)}
