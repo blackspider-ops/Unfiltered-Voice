@@ -19,6 +19,7 @@ import { Categories } from '@/components/admin/Categories';
 import { Settings } from '@/components/admin/Settings';
 import { AboutEditor } from '@/components/admin/AboutEditor';
 import { OwnerCheatsheet } from '@/components/admin/OwnerCheatsheet';
+import { AuditLog } from '@/components/admin/AuditLog';
 
 interface Post {
   id: string;
@@ -392,6 +393,16 @@ export default function AdminPage() {
                   <BookOpen className="h-4 w-4" />
                   Owner's Guide
                 </Button>
+                
+                <Button
+                  variant={activeTab === 'audit' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveTab('audit')}
+                  className="flex items-center gap-2"
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  Audit Log
+                </Button>
               </>
             )}
           </div>
@@ -554,6 +565,10 @@ export default function AdminPage() {
               
               <TabsContent value="cheatsheet">
                 <OwnerCheatsheet />
+              </TabsContent>
+              
+              <TabsContent value="audit">
+                <AuditLog />
               </TabsContent>
             </>
           )}

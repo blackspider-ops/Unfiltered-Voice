@@ -9,8 +9,18 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Upload, FileText, Image, Save, Eye, X, Edit } from 'lucide-react';
+import { Loader2, Upload, FileText, Image, Save, Eye, X, Edit, AlertTriangle } from 'lucide-react';
 import { StorageSetupGuide } from './StorageSetupGuide';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface BlogPost {
     title: string;
@@ -67,6 +77,8 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
     const [storageAvailable, setStorageAvailable] = useState(true);
     const [manualPdfUrl, setManualPdfUrl] = useState('');
     const [manualCoverUrl, setManualCoverUrl] = useState('');
+    const [showEditConfirm, setShowEditConfirm] = useState(false);
+    const [pendingPublish, setPendingPublish] = useState(false);
 
     // Load editing post data
     useEffect(() => {
@@ -248,16 +260,15 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
     const handleSave = async (publish: boolean = false) => {
         // Safety check for editing mode - prevent accidental overwrites
         if (isEditing && editingPost) {
-            const confirmEdit = window.confirm(
-                `⚠️ CONFIRM EDIT\n\n` +
-                `You are about to update:\n"${editingPost.title}"\n\n` +
-                `This will overwrite the existing content.\n\n` +
-                `Are you sure you want to continue?`
-            );
-            if (!confirmEdit) {
-                return;
-            }
+            setPendingPublish(publish);
+            setShowEditConfirm(true);
+            return;
         }
+
+        await performSave(publish);
+    };
+
+    const performSave = async (publish: boolean = false) => {
 
         if (!post.title.trim()) {
             toast({
@@ -782,6 +793,46 @@ export function BlogEditor({ onPostCreated, editingPost, onCancelEdit }: BlogEdi
                     </div>
                 )}
             </CardContent>
+
+            {/* Edit Confirmation Dialog */}
+            <AlertDialog open={showEditConfirm} onOpenChange={setShowEditConfirm}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2 text-amber-600">
+                            <AlertTriangle className="h-5 w-5" />
+                            Confirm Edit
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="space-y-3">
+                            <p className="font-medium text-foreground">
+                                You are about to update:
+                            </p>
+                            <p className="text-lg font-semibold text-foreground bg-amber-50 dark:bg-amber-950/20 p-3 rounded">
+                                "{editingPost?.title}"
+                            </p>
+                            <p className="text-muted-foreground">
+                                This will overwrite the existing content. Make sure you're editing the correct post.
+                            </p>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => {
+                            setShowEditConfirm(false);
+                            setPendingPublish(false);
+                        }}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                setShowEditConfirm(false);
+                                performSave(pendingPublish);
+                            }}
+                            className="bg-amber-600 hover:bg-amber-700"
+                        >
+                            Yes, Update Post
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Card>
     );
 }

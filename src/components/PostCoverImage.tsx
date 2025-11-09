@@ -35,13 +35,13 @@ export function PostCoverImage({ src, alt, postId, title, className = "" }: Post
     <div className={`relative ${className}`}>
       {/* Gradient background that shows while loading */}
       {!imageLoaded && (
-        <div className={`absolute inset-0 bg-gradient-to-br ${gradientClass} animate-pulse`} />
+        <div className={`absolute inset-0 bg-gradient-to-br ${gradientClass} animate-pulse min-h-[200px]`} />
       )}
       
       <img
         src={src}
         alt={alt}
-        className={`w-full h-full object-cover transition-opacity duration-300 ${
+        className={`w-full h-auto object-contain transition-opacity duration-300 ${
           imageLoaded ? 'opacity-100' : 'opacity-0'
         }`}
         onLoad={() => setImageLoaded(true)}

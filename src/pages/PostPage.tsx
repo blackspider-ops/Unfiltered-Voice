@@ -197,15 +197,17 @@ export default function PostPage() {
         </div>
 
         {/* Cover Image */}
-        <div className="mb-8">
-          <PostCoverImage
-            src={post.cover_url}
-            alt={post.title}
-            postId={post.id}
-            title={post.title}
-            className="w-full h-64 rounded-lg"
-          />
-        </div>
+        {post.cover_url && (
+          <div className="mb-8">
+            <PostCoverImage
+              src={post.cover_url}
+              alt={post.title}
+              postId={post.id}
+              title={post.title}
+              className="w-full rounded-lg overflow-hidden"
+            />
+          </div>
+        )}
 
         {/* Content Section */}
         <div className="mb-12">
