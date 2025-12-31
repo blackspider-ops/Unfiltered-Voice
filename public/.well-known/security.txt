@@ -1,0 +1,6 @@
+# Security Policy for The Unfiltered Voice
+# https://www.unfilteredvoice.me
+
+Contact: mailto:preeniyati2101@gmail.com
+Preferred-Languages: en
+Canonical: https://www.unfilteredvoice.me/.well-known/security.txt

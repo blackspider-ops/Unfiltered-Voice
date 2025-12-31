@@ -10,6 +10,7 @@ import { formatDistanceToNow } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { PostCoverImage } from '@/components/PostCoverImage';
+import { SEO } from '@/components/SEO';
 
 interface Post {
   id: string;
@@ -19,6 +20,7 @@ interface Post {
   cover_url: string | null;
   pdf_url: string | null;
   content: string | null;
+  excerpt: string | null;
   uploaded_at: string;
   published_at: string;
   read_time_min: number;
@@ -148,6 +150,15 @@ export default function PostPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={post.title}
+        description={post.excerpt || post.content?.substring(0, 160) || `Read ${post.title} on The Unfiltered Voice`}
+        image={post.cover_url || undefined}
+        url={`https://www.unfilteredvoice.me/${post.category}/${post.slug}`}
+        type="article"
+        publishedTime={post.published_at}
+        category={categoryLabels[post.category as keyof typeof categoryLabels]}
+      />
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Back Button */}
         <Button

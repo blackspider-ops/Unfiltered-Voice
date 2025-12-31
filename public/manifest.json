@@ -1,0 +1,27 @@
+{
+  "name": "The Unfiltered Voice",
+  "short_name": "Unfiltered Voice",
+  "description": "Where thoughts are raw, feelings are loud, and words don't wear filters. An editorial blog by Niyati Singhal.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#A78BFA",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["blog", "lifestyle", "education"],
+  "lang": "en",
+  "dir": "ltr"
+}

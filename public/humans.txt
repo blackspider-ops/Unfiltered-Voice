@@ -1,0 +1,17 @@
+/* TEAM */
+Creator: Niyati Singhal
+Contact: preeniyati2101@gmail.com
+Site: https://www.unfilteredvoice.me
+Location: India
+
+Developer: Tejas
+GitHub: https://github.com/blackspider-ops
+Location: United States
+
+/* SITE */
+Last update: 2026/01/01
+Standards: HTML5, CSS3, JavaScript ES6+
+Components: React 18, TypeScript, Tailwind CSS, Supabase
+Software: VS Code, Vite, Vercel
+Hosting: Vercel
+Database: Supabase (PostgreSQL)
